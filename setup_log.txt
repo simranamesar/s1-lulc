@@ -1,0 +1,134 @@
+
+=== 1/6 Find the data folder (tiles_v0) ===
+tiles: 600 | label files: 600 | scene files: 600
+
+=== 2/6 Python environment ===
+Python 3.11.13
+
+=== 3/6 Install packages (needs internet; a few minutes the first time) ===
+
+[notice] A new release of pip is available: 24.0 -> 26.3
+[notice] To update, run: pip install --upgrade pip
+
+=== 4/6 GPU check ===
+index, name, memory.used [MiB], memory.total [MiB]
+0, NVIDIA RTX A6000, 10872 MiB, 49140 MiB
+PyTorch 2.15.0+cu132 | GPU available: True | NVIDIA RTX A6000
+
+=== 5/6 Prepare the data (10-20 min) ===
+  25/600 tiles prepared
+  50/600 tiles prepared
+  75/600 tiles prepared
+  100/600 tiles prepared
+  125/600 tiles prepared
+  150/600 tiles prepared
+  175/600 tiles prepared
+  200/600 tiles prepared
+  225/600 tiles prepared
+  250/600 tiles prepared
+  275/600 tiles prepared
+  300/600 tiles prepared
+  325/600 tiles prepared
+  350/600 tiles prepared
+  375/600 tiles prepared
+  400/600 tiles prepared
+  425/600 tiles prepared
+  450/600 tiles prepared
+  475/600 tiles prepared
+  500/600 tiles prepared
+  525/600 tiles prepared
+  550/600 tiles prepared
+  575/600 tiles prepared
+  600/600 tiles prepared
+
+Prepared 600 of 600 tiles -> tiles_v0/prepared
+Terrain flattening (gamma0): yes
+Input: single_scenes; scenes per tile: median 58, total 34981
+S1 mean (dB): [-10.0644, -17.4918, -7.4274]  std: [4.6682, 5.18, 3.7499]
+After Lee 5x5 filter: mean [-9.5872, -16.9567, -7.3696]  std [4.1177, 4.482, 2.6742] (less speckle = lower std)
+
+Monthly label flip rate (share of pixels changing class month to month), mean over tiles:
+  Dynamic World raw : 0.158
+  hybrid raw        : 0.156
+  hybrid smoothed   : 0.098
+
+Built pixels, Dynamic World vs hybrid, per settlement type (train+val+test):
+            built_px_dw  built_px_hyb
+settlement                           
+city           47818682      48552645
+none             951955        958055
+town           24560638      24672494
+village        10060224      10167423
+
+Train class shares (hyb_s): water 6.0%, trees 20.8%, grass_shrub 15.4%, crops 19.0%, built 22.5%, bare_snow 16.4%
+
+=== 6/6 Balance check ===
+Reading 600 prepared tiles ...
+# Training data balance report (label: `hyb_s`)
+
+## 1. Tiles per settlement type and split
+
+| settlement   |   test |   train |   val |   All |
+|:-------------|-------:|--------:|------:|------:|
+| city         |     30 |      77 |    13 |   120 |
+| none         |     29 |     118 |    16 |   163 |
+| town         |     28 |      79 |    13 |   120 |
+| village      |     43 |     135 |    19 |   197 |
+| All          |    130 |     409 |    61 |   600 |
+
+## 2. Train tiles per region and settlement type
+
+| region         |   city |   none |   town |   village |   All |
+|:---------------|-------:|-------:|-------:|----------:|------:|
+| africa_mideast |      9 |     16 |     18 |        21 |    64 |
+| asia_north     |     10 |     13 |     15 |        20 |    58 |
+| asia_south     |     14 |     17 |     13 |        19 |    63 |
+| europe         |     11 |     18 |     19 |        19 |    67 |
+| north_america  |     13 |     19 |      3 |        24 |    59 |
+| oceania        |     10 |     16 |      6 |        12 |    44 |
+| south_america  |     10 |     19 |      5 |        20 |    54 |
+| All            |     77 |    118 |     79 |       135 |   409 |
+
+Train tiles cover **14 of 14 biomes**.
+
+## 3. Share of training draws, uniform vs balanced sampling
+
+| axis       | group          |   raw_% |   balanced_% |   equal_share_% |
+|:-----------|:---------------|--------:|-------------:|----------------:|
+| region     | africa_mideast |    12.2 |         14.3 |            14.3 |
+| region     | asia_north     |    16.3 |         14.3 |            14.3 |
+| region     | asia_south     |    11.1 |         14.3 |            14.3 |
+| region     | europe         |    27.3 |         14.3 |            14.3 |
+| region     | north_america  |    13.3 |         14.3 |            14.3 |
+| region     | oceania        |     9.2 |         14.3 |            14.3 |
+| region     | south_america  |    10.6 |         14.3 |            14.3 |
+| settlement | city           |    17.6 |         25   |            25   |
+| settlement | none           |    26.1 |         25   |            25   |
+| settlement | town           |    22.3 |         25   |            25   |
+| settlement | village        |    34   |         25   |            25   |
+
+## 4. Class shares (pixels the model sees)
+
+Raw = uniform sampling. Balanced = expected share per draw with the balanced sampler. With loss = share of the loss signal once the class weights in the loss are added (what the model is pushed to learn). Val/test keep the real distribution on purpose.
+
+| class       |   train_raw_% |   train_balanced_% |   train_with_loss_% |   val_% |   test_% |   train_tiles_with_class |
+|:------------|--------------:|-------------------:|--------------------:|--------:|---------:|-------------------------:|
+| water       |          6.28 |               7.6  |               11.45 |    4.31 |     4.86 |                      197 |
+| trees       |         20.94 |              21.02 |               19.04 |   14.7  |    22.77 |                      344 |
+| grass_shrub |         15.34 |              16.19 |               16.71 |   11.43 |    16.72 |                      360 |
+| crops       |         18.72 |              16.01 |               16.62 |   15.94 |    16.85 |                      316 |
+| built       |         22.22 |              26.47 |               21.37 |   31.56 |    24.92 |                      317 |
+| bare_snow   |         16.49 |              12.71 |               14.81 |   22.07 |    13.87 |                      292 |
+
+## 5. Diversity
+
+- Train samples (single scenes): **19852** from **408** tiles
+- Effective sample size with balanced sampling: **12785** (64% of samples). Below ~50% means a few samples are repeated a lot.
+
+## 6. Warnings
+
+- None. The training data is balanced on all three checks.
+
+Wrote ../data/tiles_v0/prepared/balance_report.md, .csv, .png
+
+ALL DONE. Send setup_log.txt (in the s1-lulc folder). Then start training with:  bash start_training.sh

@@ -1,0 +1,421 @@
+=== E1 ===
+Device: cuda (NVIDIA RTX PRO 6000 Blackwell Server Edition), label: hyb_s
+Input: single_scenes, no speckle filter
+Samples (scenes): train 19852, val 2792; tiles train/val/test 409/61/130
+Balanced sampler: effective sample size 12785 of 19852
+Class share of training pixels, uniform -> balanced: water 6.3->7.6%, trees 20.9->21.0%, grass_shrub 15.3->16.2%, crops 18.7->16.0%, built 22.2->26.5%, bare_snow 16.5->12.7%
+Shared memory /dev/shm is only 64 MB -> data loading in the main process (workers 0)
+Model: U-Net resnet34, weights imagenet, upsample interp, 24.4M parameters (24.4M trainable)
+Class weights: water 1.40, trees 0.84, grass_shrub 0.96, crops 0.96, built 0.75, bare_snow 1.08
+ep   1  loss 1.897/1.745  mIoU 0.378/0.440  val OA 0.629  50s  *best
+ep   2  loss 1.536/1.624  mIoU 0.460/0.480  val OA 0.669  45s  *best
+ep   3  loss 1.450/1.520  mIoU 0.485/0.516  val OA 0.690  47s  *best
+ep   4  loss 1.385/1.565  mIoU 0.505/0.490  val OA 0.681  46s
+ep   5  loss 1.348/1.569  mIoU 0.515/0.476  val OA 0.669  47s
+ep   6  loss 1.305/1.570  mIoU 0.531/0.480  val OA 0.669  46s
+ep   7  loss 1.267/1.679  mIoU 0.540/0.455  val OA 0.623  46s
+ep   8  loss 1.229/1.547  mIoU 0.552/0.469  val OA 0.648  46s
+ep   9  loss 1.200/1.596  mIoU 0.560/0.458  val OA 0.661  45s
+ep  10  loss 1.169/1.509  mIoU 0.573/0.510  val OA 0.699  46s
+ep  11  loss 1.134/1.453  mIoU 0.582/0.525  val OA 0.698  45s  *best
+ep  12  loss 1.098/1.523  mIoU 0.593/0.510  val OA 0.692  45s
+ep  13  loss 1.073/1.543  mIoU 0.602/0.503  val OA 0.679  46s
+ep  14  loss 1.052/1.529  mIoU 0.608/0.531  val OA 0.708  43s  *best
+ep  15  loss 1.024/1.502  mIoU 0.616/0.528  val OA 0.703  45s
+ep  16  loss 0.997/1.473  mIoU 0.625/0.537  val OA 0.709  45s  *best
+ep  17  loss 0.965/1.510  mIoU 0.637/0.526  val OA 0.697  43s
+ep  18  loss 0.959/1.522  mIoU 0.637/0.520  val OA 0.693  44s
+ep  19  loss 0.921/1.494  mIoU 0.648/0.535  val OA 0.709  45s
+ep  20  loss 0.910/1.480  mIoU 0.653/0.538  val OA 0.703  43s  *best
+ep  21  loss 0.880/1.513  mIoU 0.663/0.524  val OA 0.694  43s
+ep  22  loss 0.864/1.529  mIoU 0.666/0.517  val OA 0.699  46s
+ep  23  loss 0.860/1.549  mIoU 0.668/0.518  val OA 0.699  45s
+ep  24  loss 0.828/1.485  mIoU 0.679/0.542  val OA 0.719  47s  *best
+ep  25  loss 0.820/1.520  mIoU 0.681/0.536  val OA 0.707  45s
+ep  26  loss 0.815/1.536  mIoU 0.683/0.511  val OA 0.696  45s
+ep  27  loss 0.789/1.550  mIoU 0.692/0.518  val OA 0.699  47s
+ep  28  loss 0.783/1.522  mIoU 0.693/0.522  val OA 0.702  46s
+ep  29  loss 0.771/1.521  mIoU 0.697/0.525  val OA 0.700  48s
+ep  30  loss 0.767/1.524  mIoU 0.698/0.527  val OA 0.700  46s
+ep  31  loss 0.754/1.551  mIoU 0.703/0.522  val OA 0.699  47s
+ep  32  loss 0.745/1.555  mIoU 0.706/0.525  val OA 0.702  46s
+ep  33  loss 0.730/1.551  mIoU 0.710/0.517  val OA 0.695  48s
+ep  34  loss 0.737/1.560  mIoU 0.709/0.517  val OA 0.699  47s
+Early stopping: no val mIoU gain for 10 epochs (best epoch 24).
+
+Test set (best checkpoint):
+  OA 0.632 | mIoU 0.487 | macro F1 0.638
+  per settlement:
+    city            OA 0.772  mIoU 0.434  macro F1 0.553
+    none            OA 0.585  mIoU 0.348  macro F1 0.507
+    town            OA 0.613  mIoU 0.432  macro F1 0.575
+    village         OA 0.577  mIoU 0.411  macro F1 0.565
+  per region:
+    africa_mideast  OA 0.582  mIoU 0.482  macro F1 0.632
+    asia_north      OA 0.650  mIoU 0.304  macro F1 0.393
+    asia_south      OA 0.569  mIoU 0.399  macro F1 0.542
+    europe          OA 0.688  mIoU 0.455  macro F1 0.607
+    north_america   OA 0.653  mIoU 0.422  macro F1 0.562
+    oceania         OA 0.649  mIoU 0.508  macro F1 0.644
+    south_america   OA 0.673  mIoU 0.473  macro F1 0.591
+  village built-up: recall 0.427, IoU 0.344 (1492895 label px)
+  month-to-month flip rate: prediction 0.253 vs label 0.089
+  built-up: precision 0.835, recall 0.807, false change rate 0.0436 (built status flips month to month where the label stays the same)
+  new built-up over 12 months (prototype rule): predicted 0.55 ha/km2, labels 0.81 ha/km2, false 0.51 ha/km2 (precision 0.07, recall 0.05)
+  per-class IoU / F1: water 0.73/0.84, trees 0.49/0.66, grass_shrub 0.32/0.48, crops 0.37/0.54, built 0.70/0.82, bare_snow 0.32/0.48
+
+Saved to runs/E1/
+=== E0 ===
+Device: cuda (NVIDIA RTX PRO 6000 Blackwell Server Edition), label: dw
+Input: single_scenes, no speckle filter
+Samples (scenes): train 19852, val 2792; tiles train/val/test 409/61/130
+Balanced sampler: effective sample size 12781 of 19852
+Class share of training pixels, uniform -> balanced: water 6.3->7.6%, trees 20.9->20.9%, grass_shrub 15.6->16.4%, crops 18.5->15.9%, built 22.0->26.2%, bare_snow 16.8->13.0%
+Shared memory /dev/shm is only 64 MB -> data loading in the main process (workers 0)
+Model: U-Net resnet34, weights imagenet, upsample interp, 24.4M parameters (24.4M trainable)
+Class weights: water 1.40, trees 0.85, grass_shrub 0.95, crops 0.97, built 0.75, bare_snow 1.07
+ep   1  loss 1.912/1.829  mIoU 0.371/0.421  val OA 0.635  45s  *best
+ep   2  loss 1.564/1.612  mIoU 0.451/0.475  val OA 0.664  44s  *best
+ep   3  loss 1.468/1.621  mIoU 0.480/0.460  val OA 0.669  43s
+ep   4  loss 1.410/1.622  mIoU 0.498/0.460  val OA 0.648  44s
+ep   5  loss 1.369/1.610  mIoU 0.510/0.468  val OA 0.659  44s
+ep   6  loss 1.345/1.570  mIoU 0.518/0.490  val OA 0.671  77s  *best
+ep   7  loss 1.315/1.553  mIoU 0.526/0.502  val OA 0.675  44s  *best
+ep   8  loss 1.275/1.615  mIoU 0.538/0.467  val OA 0.625  43s
+ep   9  loss 1.249/1.556  mIoU 0.546/0.492  val OA 0.664  44s
+ep  10  loss 1.216/1.506  mIoU 0.558/0.506  val OA 0.675  43s  *best
+ep  11  loss 1.183/1.474  mIoU 0.567/0.524  val OA 0.699  42s  *best
+ep  12  loss 1.155/1.590  mIoU 0.576/0.498  val OA 0.675  43s
+ep  13  loss 1.140/1.523  mIoU 0.581/0.517  val OA 0.686  42s
+ep  14  loss 1.116/1.456  mIoU 0.588/0.536  val OA 0.700  43s  *best
+ep  15  loss 1.087/1.562  mIoU 0.596/0.496  val OA 0.678  44s
+ep  16  loss 1.060/1.527  mIoU 0.605/0.519  val OA 0.692  44s
+ep  17  loss 1.031/1.490  mIoU 0.616/0.530  val OA 0.702  44s
+ep  18  loss 1.024/1.492  mIoU 0.616/0.523  val OA 0.693  43s
+ep  19  loss 0.991/1.517  mIoU 0.626/0.526  val OA 0.701  44s
+ep  20  loss 0.972/1.687  mIoU 0.634/0.491  val OA 0.656  42s
+ep  21  loss 0.948/1.509  mIoU 0.640/0.502  val OA 0.674  42s
+ep  22  loss 0.928/1.543  mIoU 0.646/0.511  val OA 0.683  44s
+ep  23  loss 0.914/1.559  mIoU 0.651/0.511  val OA 0.677  44s
+ep  24  loss 0.893/1.524  mIoU 0.657/0.514  val OA 0.682  44s
+Early stopping: no val mIoU gain for 10 epochs (best epoch 14).
+
+Test set (best checkpoint):
+  OA 0.626 | mIoU 0.487 | macro F1 0.640
+  per settlement:
+    city            OA 0.741  mIoU 0.421  macro F1 0.542
+    none            OA 0.620  mIoU 0.382  macro F1 0.542
+    town            OA 0.588  mIoU 0.426  macro F1 0.572
+    village         OA 0.578  mIoU 0.409  macro F1 0.563
+  per region:
+    africa_mideast  OA 0.601  mIoU 0.495  macro F1 0.643
+    asia_north      OA 0.721  mIoU 0.344  macro F1 0.432
+    asia_south      OA 0.538  mIoU 0.385  macro F1 0.522
+    europe          OA 0.679  mIoU 0.455  macro F1 0.608
+    north_america   OA 0.609  mIoU 0.391  macro F1 0.524
+    oceania         OA 0.661  mIoU 0.515  macro F1 0.660
+    south_america   OA 0.649  mIoU 0.465  macro F1 0.589
+  village built-up: recall 0.366, IoU 0.300 (1481511 label px)
+  month-to-month flip rate: prediction 0.247 vs label 0.151
+  built-up: precision 0.796, recall 0.792, false change rate 0.0466 (built status flips month to month where the label stays the same)
+  new built-up over 12 months (prototype rule): predicted 0.95 ha/km2, labels 0.76 ha/km2, false 0.88 ha/km2 (precision 0.07, recall 0.09)
+  per-class IoU / F1: water 0.74/0.85, trees 0.47/0.64, grass_shrub 0.35/0.52, crops 0.36/0.53, built 0.66/0.79, bare_snow 0.33/0.50
+
+Saved to runs/E0/
+=== E2b ===
+Device: cuda (NVIDIA RTX PRO 6000 Blackwell Server Edition), label: hyb_s
+Input: single_scenes, no speckle filter
+Samples (scenes): train 19852, val 2792; tiles train/val/test 409/61/130
+Balanced sampler: effective sample size 12785 of 19852
+Class share of training pixels, uniform -> balanced: water 6.3->7.6%, trees 20.9->21.0%, grass_shrub 15.3->16.2%, crops 18.7->16.0%, built 22.2->26.5%, bare_snow 16.5->12.7%
+Shared memory /dev/shm is only 64 MB -> data loading in the main process (workers 0)
+Model: U-Net resnet34, weights none, upsample interp, 24.4M parameters (24.4M trainable)
+Class weights: water 1.40, trees 0.84, grass_shrub 0.96, crops 0.96, built 0.75, bare_snow 1.08
+ep   1  loss 1.980/1.919  mIoU 0.329/0.358  val OA 0.582  75s  *best
+ep   2  loss 1.652/1.778  mIoU 0.409/0.412  val OA 0.628  45s  *best
+ep   3  loss 1.574/1.608  mIoU 0.436/0.466  val OA 0.652  47s  *best
+ep   4  loss 1.511/1.630  mIoU 0.458/0.454  val OA 0.656  44s
+ep   5  loss 1.474/1.599  mIoU 0.470/0.486  val OA 0.673  43s  *best
+ep   6  loss 1.444/1.535  mIoU 0.481/0.502  val OA 0.682  43s  *best
+ep   7  loss 1.414/1.641  mIoU 0.490/0.453  val OA 0.628  44s
+ep   8  loss 1.382/1.528  mIoU 0.501/0.493  val OA 0.678  45s
+ep   9  loss 1.351/1.556  mIoU 0.512/0.487  val OA 0.668  44s
+ep  10  loss 1.334/1.619  mIoU 0.518/0.464  val OA 0.648  44s
+ep  11  loss 1.305/1.494  mIoU 0.527/0.521  val OA 0.696  44s  *best
+ep  12  loss 1.286/1.597  mIoU 0.532/0.479  val OA 0.650  44s
+ep  13  loss 1.257/1.523  mIoU 0.542/0.519  val OA 0.686  43s
+ep  14  loss 1.238/1.430  mIoU 0.547/0.546  val OA 0.723  41s  *best
+ep  15  loss 1.229/1.520  mIoU 0.552/0.512  val OA 0.687  42s
+ep  16  loss 1.214/1.537  mIoU 0.556/0.510  val OA 0.679  44s
+ep  17  loss 1.192/1.520  mIoU 0.564/0.512  val OA 0.679  42s
+ep  18  loss 1.185/1.517  mIoU 0.565/0.514  val OA 0.691  43s
+ep  19  loss 1.149/1.541  mIoU 0.577/0.497  val OA 0.672  44s
+ep  20  loss 1.148/1.559  mIoU 0.577/0.507  val OA 0.678  43s
+ep  21  loss 1.121/1.566  mIoU 0.585/0.489  val OA 0.651  43s
+ep  22  loss 1.103/1.500  mIoU 0.590/0.519  val OA 0.691  44s
+ep  23  loss 1.100/1.528  mIoU 0.591/0.520  val OA 0.695  44s
+ep  24  loss 1.074/1.506  mIoU 0.599/0.528  val OA 0.697  43s
+Early stopping: no val mIoU gain for 10 epochs (best epoch 14).
+
+Test set (best checkpoint):
+  OA 0.629 | mIoU 0.482 | macro F1 0.634
+  per settlement:
+    city            OA 0.752  mIoU 0.394  macro F1 0.494
+    none            OA 0.641  mIoU 0.368  macro F1 0.521
+    town            OA 0.596  mIoU 0.423  macro F1 0.567
+    village         OA 0.561  mIoU 0.400  macro F1 0.556
+  per region:
+    africa_mideast  OA 0.625  mIoU 0.513  macro F1 0.656
+    asia_north      OA 0.739  mIoU 0.330  macro F1 0.399
+    asia_south      OA 0.555  mIoU 0.389  macro F1 0.526
+    europe          OA 0.691  mIoU 0.470  macro F1 0.623
+    north_america   OA 0.658  mIoU 0.425  macro F1 0.566
+    oceania         OA 0.613  mIoU 0.472  macro F1 0.617
+    south_america   OA 0.642  mIoU 0.407  macro F1 0.497
+  village built-up: recall 0.525, IoU 0.388 (1492895 label px)
+  month-to-month flip rate: prediction 0.229 vs label 0.089
+  built-up: precision 0.799, recall 0.825, false change rate 0.0449 (built status flips month to month where the label stays the same)
+  new built-up over 12 months (prototype rule): predicted 0.54 ha/km2, labels 0.81 ha/km2, false 0.50 ha/km2 (precision 0.07, recall 0.05)
+  per-class IoU / F1: water 0.72/0.84, trees 0.50/0.66, grass_shrub 0.32/0.49, crops 0.31/0.47, built 0.68/0.81, bare_snow 0.36/0.53
+
+Saved to runs/E2b/
+=== E2a ===
+Device: cuda (NVIDIA RTX PRO 6000 Blackwell Server Edition), label: hyb_s
+Input: single_scenes, no speckle filter
+Samples (scenes): train 19852, val 2792; tiles train/val/test 409/61/130
+Balanced sampler: effective sample size 12785 of 19852
+Class share of training pixels, uniform -> balanced: water 6.3->7.6%, trees 20.9->21.0%, grass_shrub 15.3->16.2%, crops 18.7->16.0%, built 22.2->26.5%, bare_snow 16.5->12.7%
+Shared memory /dev/shm is only 64 MB -> data loading in the main process (workers 0)
+Model: U-Net resnet34, weights imagenet, upsample interp, 24.4M parameters (3.2M trainable)
+Class weights: water 1.40, trees 0.84, grass_shrub 0.96, crops 0.96, built 0.75, bare_snow 1.08
+ep   1  loss 1.880/1.681  mIoU 0.379/0.467  val OA 0.644  42s  *best
+ep   2  loss 1.481/1.557  mIoU 0.477/0.503  val OA 0.681  42s  *best
+ep   3  loss 1.409/1.552  mIoU 0.495/0.495  val OA 0.669  39s
+ep   4  loss 1.361/1.567  mIoU 0.509/0.501  val OA 0.680  40s
+ep   5  loss 1.323/1.594  mIoU 0.520/0.492  val OA 0.668  44s
+ep   6  loss 1.305/1.525  mIoU 0.526/0.515  val OA 0.688  41s  *best
+ep   7  loss 1.273/1.616  mIoU 0.535/0.491  val OA 0.654  43s
+ep   8  loss 1.243/1.544  mIoU 0.544/0.501  val OA 0.662  40s
+ep   9  loss 1.231/1.587  mIoU 0.548/0.498  val OA 0.663  40s
+ep  10  loss 1.217/1.573  mIoU 0.553/0.489  val OA 0.657  41s
+ep  11  loss 1.192/1.526  mIoU 0.561/0.519  val OA 0.686  40s  *best
+ep  12  loss 1.164/1.596  mIoU 0.569/0.493  val OA 0.665  41s
+ep  13  loss 1.154/1.549  mIoU 0.572/0.516  val OA 0.679  42s
+ep  14  loss 1.134/1.553  mIoU 0.579/0.511  val OA 0.677  39s
+ep  15  loss 1.135/1.570  mIoU 0.577/0.502  val OA 0.673  41s
+ep  16  loss 1.120/1.557  mIoU 0.582/0.518  val OA 0.687  40s
+ep  17  loss 1.101/1.546  mIoU 0.589/0.514  val OA 0.678  41s
+ep  18  loss 1.096/1.571  mIoU 0.590/0.503  val OA 0.670  40s
+ep  19  loss 1.076/1.578  mIoU 0.597/0.502  val OA 0.675  43s
+ep  20  loss 1.079/1.573  mIoU 0.597/0.508  val OA 0.675  41s
+ep  21  loss 1.060/1.569  mIoU 0.602/0.497  val OA 0.664  40s
+Early stopping: no val mIoU gain for 10 epochs (best epoch 11).
+
+Test set (best checkpoint):
+  OA 0.609 | mIoU 0.462 | macro F1 0.613
+  per settlement:
+    city            OA 0.746  mIoU 0.399  macro F1 0.507
+    none            OA 0.559  mIoU 0.325  macro F1 0.477
+    town            OA 0.586  mIoU 0.407  macro F1 0.545
+    village         OA 0.562  mIoU 0.375  macro F1 0.533
+  per region:
+    africa_mideast  OA 0.534  mIoU 0.445  macro F1 0.594
+    asia_north      OA 0.685  mIoU 0.320  macro F1 0.405
+    asia_south      OA 0.551  mIoU 0.387  macro F1 0.527
+    europe          OA 0.670  mIoU 0.434  macro F1 0.587
+    north_america   OA 0.661  mIoU 0.428  macro F1 0.566
+    oceania         OA 0.613  mIoU 0.471  macro F1 0.619
+    south_america   OA 0.654  mIoU 0.436  macro F1 0.546
+  village built-up: recall 0.423, IoU 0.329 (1492895 label px)
+  month-to-month flip rate: prediction 0.295 vs label 0.089
+  built-up: precision 0.821, recall 0.791, false change rate 0.0489 (built status flips month to month where the label stays the same)
+  new built-up over 12 months (prototype rule): predicted 0.62 ha/km2, labels 0.81 ha/km2, false 0.57 ha/km2 (precision 0.07, recall 0.06)
+  per-class IoU / F1: water 0.70/0.83, trees 0.48/0.65, grass_shrub 0.31/0.47, crops 0.32/0.48, built 0.68/0.81, bare_snow 0.28/0.44
+
+Saved to runs/E2a/
+=== E3 ===
+Device: cuda (NVIDIA RTX PRO 6000 Blackwell Server Edition), label: hyb_s
+Input: single_scenes, no speckle filter
+Samples (scenes): train 19852, val 2792; tiles train/val/test 409/61/130
+Balanced sampler: effective sample size 12785 of 19852
+Class share of training pixels, uniform -> balanced: water 6.3->7.6%, trees 20.9->21.0%, grass_shrub 15.3->16.2%, crops 18.7->16.0%, built 22.2->26.5%, bare_snow 16.5->12.7%
+Shared memory /dev/shm is only 64 MB -> data loading in the main process (workers 0)
+Model: U-Net resnet34, weights imagenet, upsample transposed, 25.8M parameters (25.8M trainable)
+Class weights: water 1.40, trees 0.84, grass_shrub 0.96, crops 0.96, built 0.75, bare_snow 1.08
+ep   1  loss 1.916/1.742  mIoU 0.364/0.423  val OA 0.615  44s  *best
+ep   2  loss 1.562/1.580  mIoU 0.446/0.479  val OA 0.667  46s  *best
+ep   3  loss 1.488/1.556  mIoU 0.470/0.489  val OA 0.683  45s  *best
+ep   4  loss 1.413/1.645  mIoU 0.494/0.465  val OA 0.658  44s
+ep   5  loss 1.377/1.619  mIoU 0.507/0.460  val OA 0.649  44s
+ep   6  loss 1.343/1.494  mIoU 0.516/0.516  val OA 0.691  44s  *best
+ep   7  loss 1.293/1.444  mIoU 0.533/0.545  val OA 0.715  44s  *best
+ep   8  loss 1.266/1.452  mIoU 0.542/0.535  val OA 0.708  43s
+ep   9  loss 1.245/1.480  mIoU 0.548/0.524  val OA 0.688  44s
+ep  10  loss 1.210/1.520  mIoU 0.560/0.515  val OA 0.681  44s
+ep  11  loss 1.181/1.543  mIoU 0.568/0.500  val OA 0.679  45s
+ep  12  loss 1.159/1.459  mIoU 0.574/0.549  val OA 0.717  44s  *best
+ep  13  loss 1.133/1.521  mIoU 0.582/0.507  val OA 0.686  45s
+ep  14  loss 1.111/1.536  mIoU 0.589/0.519  val OA 0.695  46s
+ep  15  loss 1.091/1.507  mIoU 0.595/0.520  val OA 0.692  46s
+ep  16  loss 1.065/1.431  mIoU 0.603/0.554  val OA 0.723  44s  *best
+ep  17  loss 1.048/1.472  mIoU 0.609/0.555  val OA 0.723  45s  *best
+ep  18  loss 1.027/1.462  mIoU 0.614/0.541  val OA 0.709  43s
+ep  19  loss 1.020/1.518  mIoU 0.617/0.537  val OA 0.712  44s
+ep  20  loss 0.992/1.570  mIoU 0.626/0.518  val OA 0.693  44s
+ep  21  loss 0.975/1.489  mIoU 0.631/0.538  val OA 0.707  44s
+ep  22  loss 0.953/1.451  mIoU 0.639/0.554  val OA 0.723  45s
+ep  23  loss 0.938/1.497  mIoU 0.644/0.533  val OA 0.706  44s
+ep  24  loss 0.936/1.483  mIoU 0.646/0.537  val OA 0.708  44s
+ep  25  loss 0.911/1.560  mIoU 0.652/0.527  val OA 0.696  44s
+ep  26  loss 0.888/1.526  mIoU 0.660/0.528  val OA 0.700  42s
+ep  27  loss 0.886/1.489  mIoU 0.661/0.543  val OA 0.713  43s
+Early stopping: no val mIoU gain for 10 epochs (best epoch 17).
+
+Test set (best checkpoint):
+  OA 0.637 | mIoU 0.490 | macro F1 0.644
+  per settlement:
+    city            OA 0.761  mIoU 0.397  macro F1 0.499
+    none            OA 0.597  mIoU 0.348  macro F1 0.504
+    town            OA 0.620  mIoU 0.454  macro F1 0.603
+    village         OA 0.590  mIoU 0.413  macro F1 0.569
+  per region:
+    africa_mideast  OA 0.601  mIoU 0.460  macro F1 0.619
+    asia_north      OA 0.733  mIoU 0.330  macro F1 0.402
+    asia_south      OA 0.564  mIoU 0.400  macro F1 0.543
+    europe          OA 0.671  mIoU 0.438  macro F1 0.587
+    north_america   OA 0.670  mIoU 0.429  macro F1 0.574
+    oceania         OA 0.647  mIoU 0.506  macro F1 0.645
+    south_america   OA 0.690  mIoU 0.434  macro F1 0.520
+  village built-up: recall 0.485, IoU 0.369 (1492895 label px)
+  month-to-month flip rate: prediction 0.228 vs label 0.089
+  built-up: precision 0.807, recall 0.838, false change rate 0.0415 (built status flips month to month where the label stays the same)
+  new built-up over 12 months (prototype rule): predicted 0.52 ha/km2, labels 0.81 ha/km2, false 0.48 ha/km2 (precision 0.07, recall 0.05)
+  per-class IoU / F1: water 0.70/0.82, trees 0.49/0.66, grass_shrub 0.34/0.50, crops 0.37/0.54, built 0.70/0.82, bare_snow 0.35/0.52
+
+Saved to runs/E3/
+=== E5 ===
+Device: cuda (NVIDIA RTX PRO 6000 Blackwell Server Edition), label: hyb_s
+Input: single_scenes + Lee 5x5 filter
+Samples (scenes): train 19852, val 2792; tiles train/val/test 409/61/130
+Balanced sampler: effective sample size 12785 of 19852
+Class share of training pixels, uniform -> balanced: water 6.3->7.6%, trees 20.9->21.0%, grass_shrub 15.3->16.2%, crops 18.7->16.0%, built 22.2->26.5%, bare_snow 16.5->12.7%
+Shared memory /dev/shm is only 64 MB -> data loading in the main process (workers 0)
+Model: U-Net resnet34, weights imagenet, upsample interp, 24.4M parameters (24.4M trainable)
+Class weights: water 1.40, trees 0.84, grass_shrub 0.96, crops 0.96, built 0.75, bare_snow 1.08
+ep   1  loss 1.915/1.720  mIoU 0.368/0.430  val OA 0.635  122s  *best
+ep   2  loss 1.562/1.573  mIoU 0.451/0.490  val OA 0.685  123s  *best
+ep   3  loss 1.481/1.615  mIoU 0.474/0.461  val OA 0.666  121s
+ep   4  loss 1.414/1.576  mIoU 0.495/0.503  val OA 0.671  120s  *best
+ep   5  loss 1.359/1.561  mIoU 0.512/0.515  val OA 0.693  120s  *best
+ep   6  loss 1.330/1.692  mIoU 0.521/0.441  val OA 0.641  119s
+ep   7  loss 1.281/1.596  mIoU 0.536/0.491  val OA 0.657  121s
+ep   8  loss 1.247/1.508  mIoU 0.546/0.516  val OA 0.688  125s  *best
+ep   9  loss 1.216/1.529  mIoU 0.555/0.504  val OA 0.666  122s
+ep  10  loss 1.183/1.460  mIoU 0.568/0.523  val OA 0.698  121s  *best
+ep  11  loss 1.153/1.537  mIoU 0.576/0.510  val OA 0.690  122s
+ep  12  loss 1.113/1.628  mIoU 0.588/0.468  val OA 0.648  124s
+ep  13  loss 1.089/1.550  mIoU 0.597/0.488  val OA 0.665  121s
+ep  14  loss 1.063/1.531  mIoU 0.604/0.515  val OA 0.686  121s
+ep  15  loss 1.034/1.485  mIoU 0.614/0.534  val OA 0.708  121s  *best
+ep  16  loss 1.009/1.608  mIoU 0.622/0.490  val OA 0.688  121s
+ep  17  loss 0.981/1.578  mIoU 0.631/0.486  val OA 0.670  122s
+ep  18  loss 0.964/1.540  mIoU 0.635/0.495  val OA 0.672  120s
+ep  19  loss 0.928/1.526  mIoU 0.647/0.524  val OA 0.700  121s
+ep  20  loss 0.915/1.616  mIoU 0.651/0.489  val OA 0.661  122s
+ep  21  loss 0.887/1.566  mIoU 0.660/0.499  val OA 0.668  122s
+ep  22  loss 0.866/1.638  mIoU 0.666/0.472  val OA 0.664  122s
+ep  23  loss 0.860/1.628  mIoU 0.669/0.495  val OA 0.682  121s
+ep  24  loss 0.831/1.559  mIoU 0.678/0.513  val OA 0.689  122s
+ep  25  loss 0.823/1.600  mIoU 0.680/0.515  val OA 0.691  119s
+Early stopping: no val mIoU gain for 10 epochs (best epoch 15).
+
+Test set (best checkpoint):
+  OA 0.635 | mIoU 0.493 | macro F1 0.643
+  per settlement:
+    city            OA 0.762  mIoU 0.401  macro F1 0.506
+    none            OA 0.618  mIoU 0.376  macro F1 0.534
+    town            OA 0.615  mIoU 0.453  macro F1 0.602
+    village         OA 0.573  mIoU 0.407  macro F1 0.555
+  per region:
+    africa_mideast  OA 0.643  mIoU 0.532  macro F1 0.675
+    asia_north      OA 0.654  mIoU 0.303  macro F1 0.382
+    asia_south      OA 0.544  mIoU 0.380  macro F1 0.514
+    europe          OA 0.663  mIoU 0.440  macro F1 0.590
+    north_america   OA 0.677  mIoU 0.450  macro F1 0.592
+    oceania         OA 0.637  mIoU 0.496  macro F1 0.637
+    south_america   OA 0.690  mIoU 0.447  macro F1 0.545
+  village built-up: recall 0.447, IoU 0.355 (1492895 label px)
+  month-to-month flip rate: prediction 0.249 vs label 0.089
+  built-up: precision 0.818, recall 0.819, false change rate 0.0433 (built status flips month to month where the label stays the same)
+  new built-up over 12 months (prototype rule): predicted 0.54 ha/km2, labels 0.81 ha/km2, false 0.50 ha/km2 (precision 0.08, recall 0.05)
+  per-class IoU / F1: water 0.75/0.86, trees 0.49/0.65, grass_shrub 0.35/0.52, crops 0.32/0.49, built 0.69/0.82, bare_snow 0.36/0.53
+
+Saved to runs/E5/
+=== E1y ===
+Device: cuda (NVIDIA RTX PRO 6000 Blackwell Server Edition), label: hyb_y
+Input: single_scenes, no speckle filter
+Samples (scenes): train 23887, val 3294; tiles train/val/test 409/61/130
+Balanced sampler: effective sample size 16715 of 23887
+Class share of training pixels, uniform -> balanced: water 6.3->7.6%, trees 24.0->21.2%, grass_shrub 15.4->16.4%, crops 18.9->17.2%, built 22.8->27.3%, bare_snow 12.5->10.3%
+Shared memory /dev/shm is only 64 MB -> data loading in the main process (workers 0)
+Model: U-Net resnet34, weights imagenet, upsample interp, 24.4M parameters (24.4M trainable)
+Class weights: water 1.39, trees 0.83, grass_shrub 0.94, crops 0.92, built 0.73, bare_snow 1.19
+ep   1  loss 1.808/1.809  mIoU 0.407/0.381  val OA 0.598  54s  *best
+ep   2  loss 1.411/1.468  mIoU 0.492/0.505  val OA 0.706  53s  *best
+ep   3  loss 1.292/1.498  mIoU 0.531/0.511  val OA 0.692  54s  *best
+ep   4  loss 1.206/1.471  mIoU 0.559/0.492  val OA 0.687  53s
+ep   5  loss 1.147/1.487  mIoU 0.580/0.495  val OA 0.680  53s
+ep   6  loss 1.073/1.638  mIoU 0.602/0.478  val OA 0.672  53s
+ep   7  loss 1.017/1.603  mIoU 0.620/0.499  val OA 0.683  53s
+ep   8  loss 0.957/1.565  mIoU 0.640/0.496  val OA 0.681  52s
+ep   9  loss 0.900/1.530  mIoU 0.659/0.519  val OA 0.698  54s  *best
+ep  10  loss 0.854/1.562  mIoU 0.672/0.516  val OA 0.698  54s
+ep  11  loss 0.808/1.641  mIoU 0.687/0.493  val OA 0.680  54s
+ep  12  loss 0.774/1.596  mIoU 0.698/0.495  val OA 0.679  51s
+ep  13  loss 0.742/1.623  mIoU 0.707/0.500  val OA 0.683  50s
+ep  14  loss 0.699/1.621  mIoU 0.722/0.506  val OA 0.687  54s
+ep  15  loss 0.672/1.590  mIoU 0.730/0.519  val OA 0.701  54s  *best
+ep  16  loss 0.639/1.707  mIoU 0.742/0.486  val OA 0.673  52s
+ep  17  loss 0.623/1.698  mIoU 0.747/0.508  val OA 0.694  53s
+ep  18  loss 0.604/1.860  mIoU 0.752/0.480  val OA 0.669  53s
+ep  19  loss 0.580/1.964  mIoU 0.760/0.443  val OA 0.642  53s
+ep  20  loss 0.555/1.792  mIoU 0.769/0.487  val OA 0.675  52s
+ep  21  loss 0.542/1.858  mIoU 0.773/0.472  val OA 0.664  52s
+ep  22  loss 0.521/1.848  mIoU 0.781/0.486  val OA 0.673  52s
+ep  23  loss 0.505/1.863  mIoU 0.787/0.482  val OA 0.670  51s
+ep  24  loss 0.492/1.838  mIoU 0.791/0.480  val OA 0.676  55s
+ep  25  loss 0.480/1.875  mIoU 0.795/0.481  val OA 0.673  52s
+Early stopping: no val mIoU gain for 10 epochs (best epoch 15).
+
+Test set (best checkpoint):
+  OA 0.647 | mIoU 0.493 | macro F1 0.642
+  per settlement:
+    city            OA 0.790  mIoU 0.434  macro F1 0.546
+    none            OA 0.570  mIoU 0.360  macro F1 0.524
+    town            OA 0.636  mIoU 0.429  macro F1 0.560
+    village         OA 0.602  mIoU 0.412  macro F1 0.549
+  per region:
+    africa_mideast  OA 0.533  mIoU 0.455  macro F1 0.599
+    asia_north      OA 0.714  mIoU 0.323  macro F1 0.390
+    asia_south      OA 0.612  mIoU 0.426  macro F1 0.562
+    europe          OA 0.704  mIoU 0.440  macro F1 0.580
+    north_america   OA 0.699  mIoU 0.420  macro F1 0.549
+    oceania         OA 0.694  mIoU 0.532  macro F1 0.671
+    south_america   OA 0.643  mIoU 0.432  macro F1 0.542
+  village built-up: recall 0.546, IoU 0.405 (1840294 label px)
+  month-to-month flip rate: prediction 0.224 vs label 0.000
+  built-up: precision 0.821, recall 0.851, false change rate 0.0479 (built status flips month to month where the label stays the same)
+  new built-up over 12 months (prototype rule): predicted 0.70 ha/km2, labels 0.00 ha/km2, false 0.70 ha/km2 (precision 0.00, recall nan)
+  per-class IoU / F1: water 0.73/0.84, trees 0.51/0.67, grass_shrub 0.30/0.47, crops 0.40/0.57, built 0.72/0.84, bare_snow 0.30/0.46
+
+Saved to runs/E1y/
+run label  weights  frozen   upsample   lee    OA  mIoU  macro_F1  mIoU_city  mIoU_none  mIoU_town  mIoU_village  village_built_recall  built_P  built_R  built_false_change  false_new_ha_km2  flip_pred  flip_label  best_epoch
+ E1 hyb_s imagenet   False     interp False 0.632 0.487     0.638      0.434      0.348      0.432         0.411                 0.427    0.835    0.807               0.044             0.508      0.253       0.089          24
+ E0    dw imagenet   False     interp False 0.626 0.487     0.640      0.421      0.382      0.426         0.409                 0.366    0.796    0.792               0.047             0.881      0.247       0.151          14
+E2b hyb_s     none   False     interp False 0.629 0.482     0.634      0.394      0.368      0.423         0.400                 0.525    0.799    0.825               0.045             0.498      0.229       0.089          14
+E2a hyb_s imagenet    True     interp False 0.609 0.462     0.613      0.399      0.325      0.407         0.375                 0.423    0.821    0.791               0.049             0.572      0.295       0.089          11
+ E3 hyb_s imagenet   False transposed False 0.637 0.490     0.644      0.397      0.348      0.454         0.413                 0.485    0.807    0.838               0.042             0.482      0.228       0.089          17
+ E5 hyb_s imagenet   False     interp  True 0.635 0.493     0.643      0.401      0.376      0.453         0.407                 0.447    0.818    0.819               0.043             0.498      0.249       0.089          15
+E1y hyb_y imagenet   False     interp False 0.647 0.493     0.642      0.434      0.360      0.429         0.412                 0.546    0.821    0.851               0.048             0.696      0.224       0.000          15
+
+Wrote runs/comparison.csv

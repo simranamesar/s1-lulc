@@ -1,0 +1,13 @@
+# Install PyTorch first (GPU: --index-url https://download.pytorch.org/whl/cu121 ; Mac / CPU: plain pip install torch)
+torch>=2.1
+segmentation-models-pytorch>=0.3.3
+earthengine-api>=1.0
+streamlit>=1.36
+streamlit-folium>=0.20
+folium>=0.15
+numpy>=1.24
+pandas>=2.0
+matplotlib>=3.7
+pillow>=10
+pyproj>=3.6
+scipy>=1.10

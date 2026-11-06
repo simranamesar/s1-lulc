@@ -1,0 +1,8 @@
+data/tiles_v0/
+data/tiles_v0
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+*.zip
+train/runs/*/best.pt
+train/runs/*/last.pt

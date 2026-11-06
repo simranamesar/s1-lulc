@@ -1,0 +1,45 @@
+nohup: ignoring input
+130 test tiles; models ['E3', 'E1', 'E5', 'E2b']
+  10/130 tiles
+  20/130 tiles
+  30/130 tiles
+  40/130 tiles
+  50/130 tiles
+  60/130 tiles
+  70/130 tiles
+  80/130 tiles
+  90/130 tiles
+  100/130 tiles
+  110/130 tiles
+  120/130 tiles
+  130/130 tiles
+
+Maps (one row per variant):
+                            OA   mIoU  built_P  built_R  flip_rate  built_false_change
+variant                                                                               
+E3 single                0.661  0.522    0.815    0.854      0.133               0.020
+E3 + TTA                 0.663  0.525    0.814    0.857      0.134               0.018
+ensemble (E3+E1+E5+E2b)  0.682  0.544    0.826    0.852      0.116               0.018
+ensemble + TTA           0.685  0.547    0.826    0.853      0.114               0.017
+
+New built-up over 12 months (vs labels; 'false' = not new in the labels):
+                                           new_ha_km2  false_new_ha_km2  change_P
+variant                 change_rule                                              
+E3 single               argmax                  0.431             0.392     0.090
+                        confident 0.5/0.2       0.018             0.009     0.505
+                        confident 0.6/0.2       0.010             0.004     0.574
+                        confident 0.7/0.3       0.011             0.006     0.497
+E3 + TTA                argmax                  0.424             0.386     0.090
+                        confident 0.5/0.2       0.013             0.006     0.570
+                        confident 0.6/0.2       0.008             0.003     0.615
+                        confident 0.7/0.3       0.011             0.005     0.523
+ensemble (E3+E1+E5+E2b) argmax                  0.452             0.411     0.091
+                        confident 0.5/0.2       0.011             0.004     0.626
+                        confident 0.6/0.2       0.008             0.003     0.604
+                        confident 0.7/0.3       0.011             0.005     0.490
+ensemble + TTA          argmax                  0.445             0.403     0.094
+                        confident 0.5/0.2       0.011             0.004     0.610
+                        confident 0.6/0.2       0.008             0.003     0.607
+                        confident 0.7/0.3       0.011             0.005     0.490
+
+Saved runs/ensemble_eval.csv

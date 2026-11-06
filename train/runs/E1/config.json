@@ -1,0 +1,33 @@
+{
+  "prep_dir": "../data/tiles_v0/prepared",
+  "label": "hyb_s",
+  "name": "E1",
+  "runs_dir": "runs",
+  "encoder": "resnet34",
+  "encoder_weights": "imagenet",
+  "freeze_encoder": false,
+  "upsample": "interp",
+  "patience": 10,
+  "lee": false,
+  "epochs": 40,
+  "batch_size": 32,
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "min_label_frac": 0.2,
+  "sampler": "balanced",
+  "geo_power": 1.0,
+  "class_power": 0.5,
+  "max_ratio": 10.0,
+  "workers": 8,
+  "seed": 0,
+  "no_amp": false,
+  "n_classes": 6,
+  "class_names": [
+    "water",
+    "trees",
+    "grass_shrub",
+    "crops",
+    "built",
+    "bare_snow"
+  ]
+}
