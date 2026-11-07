@@ -1,0 +1,102 @@
+Device: cuda (NVIDIA RTX PRO 6000 Blackwell Server Edition), label: hyb_s
+Input: single_scenes, no speckle filter
+Samples (scenes): train 19852, val 2792; tiles train/val/test 409/61/130
+Balanced sampler: effective sample size 12785 of 19852
+Class share of training pixels, uniform -> balanced: water 6.3->7.6%, trees 20.9->21.0%, grass_shrub 15.3->16.2%, crops 18.7->16.0%, built 22.2->26.5%, bare_snow 16.5->12.7%
+Shared memory /dev/shm is only 64 MB -> data loading in the main process (workers 0)
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Model: U-Net resnet34, weights imagenet, upsample transposed, 25.8M parameters (25.8M trainable)
+Class weights: water 1.40, trees 0.84, grass_shrub 0.96, crops 0.96, built 0.75, bare_snow 1.08
+Snapshots: 6 fixed validation scenes saved after every epoch (epoch 0, untrained: accuracy 0.256)
+ep   1  loss 1.891/2.675  mIoU 0.370/0.226  OA 0.545/0.398  48s  *best
+        val IoU  water 0.38  trees 0.23  grass_shrub 0.04  crops 0.00  built 0.41  bare_snow 0.30
+ep   2  loss 1.583/1.652  mIoU 0.437/0.441  OA 0.611/0.650  45s  *best
+        val IoU  water 0.38  trees 0.43  grass_shrub 0.28  crops 0.39  built 0.71  bare_snow 0.45
+ep   3  loss 1.472/1.653  mIoU 0.474/0.444  OA 0.639/0.630  45s  *best
+        val IoU  water 0.60  trees 0.45  grass_shrub 0.26  crops 0.35  built 0.77  bare_snow 0.23
+ep   4  loss 1.414/1.490  mIoU 0.495/0.526  OA 0.655/0.698  45s  *best
+        val IoU  water 0.72  trees 0.44  grass_shrub 0.29  crops 0.47  built 0.76  bare_snow 0.47
+ep   5  loss 1.368/1.551  mIoU 0.508/0.477  OA 0.664/0.680  44s
+        val IoU  water 0.49  trees 0.39  grass_shrub 0.32  crops 0.47  built 0.77  bare_snow 0.43
+ep   6  loss 1.337/1.564  mIoU 0.518/0.484  OA 0.671/0.665  43s
+        val IoU  water 0.64  trees 0.35  grass_shrub 0.34  crops 0.37  built 0.76  bare_snow 0.45
+ep   7  loss 1.290/1.534  mIoU 0.534/0.506  OA 0.684/0.678  45s
+        val IoU  water 0.71  trees 0.49  grass_shrub 0.28  crops 0.42  built 0.77  bare_snow 0.37
+ep   8  loss 1.270/1.461  mIoU 0.540/0.532  OA 0.690/0.707  44s  *best
+        val IoU  water 0.67  trees 0.49  grass_shrub 0.32  crops 0.43  built 0.77  bare_snow 0.51
+ep   9  loss 1.245/1.441  mIoU 0.547/0.533  OA 0.694/0.704  43s  *best
+        val IoU  water 0.69  trees 0.50  grass_shrub 0.29  crops 0.47  built 0.74  bare_snow 0.50
+ep  10  loss 1.223/1.446  mIoU 0.553/0.533  OA 0.701/0.703  46s  *best
+        val IoU  water 0.70  trees 0.51  grass_shrub 0.29  crops 0.47  built 0.72  bare_snow 0.50
+ep  11  loss 1.194/1.472  mIoU 0.563/0.521  OA 0.708/0.707  44s
+        val IoU  water 0.64  trees 0.50  grass_shrub 0.26  crops 0.46  built 0.78  bare_snow 0.49
+ep  12  loss 1.166/1.531  mIoU 0.573/0.491  OA 0.714/0.684  43s
+        val IoU  water 0.55  trees 0.49  grass_shrub 0.27  crops 0.39  built 0.76  bare_snow 0.49
+ep  13  loss 1.136/1.490  mIoU 0.581/0.509  OA 0.722/0.705  45s
+        val IoU  water 0.55  trees 0.49  grass_shrub 0.32  crops 0.46  built 0.77  bare_snow 0.47
+ep  14  loss 1.116/1.502  mIoU 0.588/0.529  OA 0.729/0.703  46s
+        val IoU  water 0.69  trees 0.51  grass_shrub 0.31  crops 0.44  built 0.77  bare_snow 0.45
+ep  15  loss 1.102/1.451  mIoU 0.591/0.529  OA 0.731/0.701  44s
+        val IoU  water 0.70  trees 0.43  grass_shrub 0.37  crops 0.47  built 0.77  bare_snow 0.44
+ep  16  loss 1.061/1.443  mIoU 0.605/0.542  OA 0.741/0.707  43s  *best
+        val IoU  water 0.73  trees 0.52  grass_shrub 0.35  crops 0.42  built 0.76  bare_snow 0.47
+ep  17  loss 1.057/1.410  mIoU 0.607/0.544  OA 0.743/0.722  43s  *best
+        val IoU  water 0.66  trees 0.52  grass_shrub 0.33  crops 0.47  built 0.78  bare_snow 0.50
+ep  18  loss 1.024/1.421  mIoU 0.616/0.554  OA 0.751/0.722  45s  *best
+        val IoU  water 0.71  trees 0.52  grass_shrub 0.38  crops 0.46  built 0.76  bare_snow 0.50
+ep  19  loss 1.013/1.545  mIoU 0.619/0.509  OA 0.754/0.687  44s
+        val IoU  water 0.65  trees 0.51  grass_shrub 0.29  crops 0.44  built 0.78  bare_snow 0.39
+ep  20  loss 0.991/1.503  mIoU 0.626/0.540  OA 0.759/0.714  45s
+        val IoU  water 0.66  trees 0.52  grass_shrub 0.34  crops 0.47  built 0.75  bare_snow 0.50
+ep  21  loss 0.958/1.462  mIoU 0.636/0.552  OA 0.766/0.725  45s
+        val IoU  water 0.67  trees 0.53  grass_shrub 0.36  crops 0.48  built 0.77  bare_snow 0.51
+ep  22  loss 0.947/1.472  mIoU 0.642/0.537  OA 0.770/0.708  44s
+        val IoU  water 0.68  trees 0.50  grass_shrub 0.34  crops 0.47  built 0.76  bare_snow 0.47
+ep  23  loss 0.924/1.431  mIoU 0.648/0.549  OA 0.775/0.727  46s
+        val IoU  water 0.65  trees 0.53  grass_shrub 0.33  crops 0.51  built 0.76  bare_snow 0.51
+ep  24  loss 0.904/1.422  mIoU 0.653/0.562  OA 0.780/0.734  45s  *best
+        val IoU  water 0.66  trees 0.53  grass_shrub 0.38  crops 0.50  built 0.77  bare_snow 0.53
+ep  25  loss 0.901/1.494  mIoU 0.655/0.541  OA 0.779/0.714  43s
+        val IoU  water 0.66  trees 0.48  grass_shrub 0.35  crops 0.49  built 0.77  bare_snow 0.49
+ep  26  loss 0.883/1.442  mIoU 0.661/0.547  OA 0.784/0.720  43s
+        val IoU  water 0.68  trees 0.53  grass_shrub 0.33  crops 0.47  built 0.76  bare_snow 0.50
+ep  27  loss 0.864/1.492  mIoU 0.667/0.539  OA 0.789/0.716  46s
+        val IoU  water 0.64  trees 0.51  grass_shrub 0.34  crops 0.48  built 0.77  bare_snow 0.49
+ep  28  loss 0.852/1.476  mIoU 0.672/0.539  OA 0.792/0.716  44s
+        val IoU  water 0.68  trees 0.52  grass_shrub 0.29  crops 0.48  built 0.77  bare_snow 0.48
+ep  29  loss 0.845/1.513  mIoU 0.675/0.530  OA 0.795/0.707  46s
+        val IoU  water 0.65  trees 0.52  grass_shrub 0.33  crops 0.46  built 0.77  bare_snow 0.46
+ep  30  loss 0.834/1.511  mIoU 0.676/0.533  OA 0.797/0.706  46s
+        val IoU  water 0.69  trees 0.52  grass_shrub 0.31  crops 0.46  built 0.77  bare_snow 0.44
+ep  31  loss 0.823/1.502  mIoU 0.681/0.535  OA 0.799/0.710  46s
+        val IoU  water 0.68  trees 0.50  grass_shrub 0.33  crops 0.47  built 0.75  bare_snow 0.48
+ep  32  loss 0.812/1.498  mIoU 0.684/0.540  OA 0.802/0.715  46s
+        val IoU  water 0.66  trees 0.52  grass_shrub 0.33  crops 0.48  built 0.77  bare_snow 0.47
+ep  33  loss 0.804/1.486  mIoU 0.687/0.544  OA 0.803/0.719  45s
+        val IoU  water 0.67  trees 0.52  grass_shrub 0.32  crops 0.49  built 0.77  bare_snow 0.49
+ep  34  loss 0.803/1.491  mIoU 0.687/0.534  OA 0.804/0.708  50s
+        val IoU  water 0.67  trees 0.51  grass_shrub 0.32  crops 0.48  built 0.76  bare_snow 0.47
+Early stopping: no val mIoU gain for 10 epochs (best epoch 24).
+
+Test set (best checkpoint):
+  OA 0.642 | mIoU 0.498 | macro F1 0.650
+  per settlement:
+    city            OA 0.760  mIoU 0.432  macro F1 0.553
+    none            OA 0.607  mIoU 0.365  macro F1 0.524
+    town            OA 0.625  mIoU 0.438  macro F1 0.580
+    village         OA 0.594  mIoU 0.425  macro F1 0.579
+  per region:
+    africa_mideast  OA 0.597  mIoU 0.495  macro F1 0.647
+    asia_north      OA 0.738  mIoU 0.343  macro F1 0.424
+    asia_south      OA 0.576  mIoU 0.398  macro F1 0.537
+    europe          OA 0.681  mIoU 0.465  macro F1 0.621
+    north_america   OA 0.675  mIoU 0.442  macro F1 0.583
+    oceania         OA 0.651  mIoU 0.507  macro F1 0.650
+    south_america   OA 0.676  mIoU 0.459  macro F1 0.570
+  village built-up: recall 0.456, IoU 0.379 (1492895 label px)
+  month-to-month flip rate: prediction 0.231 vs label 0.089
+  built-up: precision 0.843, recall 0.792, false change rate 0.0406 (built status flips month to month where the label stays the same)
+  new built-up over 12 months (prototype rule): predicted 0.50 ha/km2, labels 0.81 ha/km2, false 0.45 ha/km2 (precision 0.10, recall 0.06)
+  per-class IoU / F1: water 0.73/0.85, trees 0.50/0.66, grass_shrub 0.35/0.51, crops 0.37/0.54, built 0.69/0.82, bare_snow 0.35/0.52
+
+Saved to runs/E3v/

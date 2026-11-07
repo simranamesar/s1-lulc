@@ -1,0 +1,635 @@
++ python3 train.py --prep-dir ../data/tiles_v0/prepared --name E3v --label hyb_s --upsample transposed --seed 2 --snapshots 6
++ python3 eval_ensemble.py --prep-dir ../data/tiles_v0/prepared --runs runs/E3 runs/E1 runs/E5 runs/E2b --no-tta --thresholds 0.5:0.2,0.5:0.35,0.6:0.2,0.7:0.3 --out ensemble_eval_round2.csv
+130 test tiles; models ['E3', 'E1', 'E5', 'E2b']
+  10/130 tiles
+  20/130 tiles
+  30/130 tiles
+  40/130 tiles
+  50/130 tiles
+  60/130 tiles
+  70/130 tiles
+  80/130 tiles
+  90/130 tiles
+  100/130 tiles
+  110/130 tiles
+  120/130 tiles
+  130/130 tiles
+
+Maps (one row per variant):
+                            OA   mIoU  built_P  built_R  flip_rate  built_false_change
+variant                                                                               
+E3 single                0.661  0.522    0.815    0.854      0.133               0.020
+E3 + smooth3             0.667  0.528    0.817    0.857      0.065               0.008
+ensemble (E3+E1+E5+E2b)  0.682  0.544    0.826    0.852      0.116               0.018
+ensemble + smooth3       0.688  0.549    0.827    0.856      0.059               0.007
+
+New built-up over 12 months (vs labels; 'false' = not new in the labels):
+                                            new_ha_km2  false_new_ha_km2  change_P
+variant                 change_rule                                               
+E3 single               argmax                   0.431             0.392     0.090
+                        confident 0.5/0.2        0.018             0.009     0.505
+                        confident 0.5/0.35       0.063             0.046     0.272
+                        confident 0.6/0.2        0.010             0.004     0.574
+                        confident 0.7/0.3        0.011             0.006     0.497
+E3 + smooth3            argmax                   0.582             0.535     0.080
+                        confident 0.5/0.2        0.017             0.008     0.551
+                        confident 0.5/0.35       0.077             0.060     0.226
+                        confident 0.6/0.2        0.012             0.005     0.584
+                        confident 0.7/0.3        0.014             0.007     0.461
+ensemble (E3+E1+E5+E2b) argmax                   0.452             0.411     0.091
+                        confident 0.5/0.2        0.011             0.004     0.626
+                        confident 0.5/0.35       0.047             0.032     0.309
+                        confident 0.6/0.2        0.008             0.003     0.604
+                        confident 0.7/0.3        0.011             0.005     0.490
+ensemble + smooth3      argmax                   0.633             0.585     0.077
+                        confident 0.5/0.2        0.014             0.005     0.615
+                        confident 0.5/0.35       0.058             0.043     0.264
+                        confident 0.6/0.2        0.010             0.004     0.622
+                        confident 0.7/0.3        0.012             0.006     0.470
+
+Saved runs/ensemble_eval_round2.csv
++ cd ../notebooks
++ python3 build_notebooks.py
+wrote /home/jovyan/vault/s1-lulc/notebooks/00_read_me_first.ipynb
+wrote /home/jovyan/vault/s1-lulc/notebooks/01_data.ipynb
+wrote /home/jovyan/vault/s1-lulc/notebooks/02_training_evaluation.ipynb
+wrote /home/jovyan/vault/s1-lulc/notebooks/03_case_studies.ipynb
+wrote /home/jovyan/vault/s1-lulc/notebooks/04_training_progress.ipynb
++ for nb in 01_data 02_training_evaluation 04_training_progress
++ jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=3600 .ipynb
+[NbConvertApp] WARNING | pattern '.ipynb' matched no files
+This application is used to convert notebook files (*.ipynb) to various other
+formats.
+
+WARNING: THE COMMANDLINE INTERFACE MAY CHANGE IN FUTURE RELEASES.
+
+Options
+=======
+The options below are convenience aliases to configurable class-options,
+as listed in the "Equivalent to" description-line of the aliases.
+To see all configurable class-options for some <cmd>, use:
+    <cmd> --help-all
+
+--debug
+    set log level to logging.DEBUG (maximize logging output)
+    Equivalent to: [--Application.log_level=10]
+--show-config
+    Show the application's configuration (human-readable format)
+    Equivalent to: [--Application.show_config=True]
+--show-config-json
+    Show the application's configuration (json format)
+    Equivalent to: [--Application.show_config_json=True]
+--generate-config
+    generate default config file
+    Equivalent to: [--JupyterApp.generate_config=True]
+-y
+    Answer yes to any questions instead of prompting.
+    Equivalent to: [--JupyterApp.answer_yes=True]
+--execute
+    Execute the notebook prior to export.
+    Equivalent to: [--ExecutePreprocessor.enabled=True]
+--allow-errors
+    Continue notebook execution even if one of the cells throws an error and include the error message in the cell output (the default behaviour is to abort conversion). This flag is only relevant if '--execute' was specified, too.
+    Equivalent to: [--ExecutePreprocessor.allow_errors=True]
+--stdin
+    read a single notebook file from stdin. Write the resulting notebook with default basename 'notebook.*'
+    Equivalent to: [--NbConvertApp.from_stdin=True]
+--stdout
+    Write notebook output to stdout instead of files.
+    Equivalent to: [--NbConvertApp.writer_class=StdoutWriter]
+--inplace
+    Run nbconvert in place, overwriting the existing notebook (only
+            relevant when converting to notebook format)
+    Equivalent to: [--NbConvertApp.use_output_suffix=False --NbConvertApp.export_format=notebook --FilesWriter.build_directory=]
+--clear-output
+    Clear output of current file and save in place,
+            overwriting the existing notebook.
+    Equivalent to: [--NbConvertApp.use_output_suffix=False --NbConvertApp.export_format=notebook --FilesWriter.build_directory= --ClearOutputPreprocessor.enabled=True]
+--coalesce-streams
+    Coalesce consecutive stdout and stderr outputs into one stream (within each cell).
+    Equivalent to: [--NbConvertApp.use_output_suffix=False --NbConvertApp.export_format=notebook --FilesWriter.build_directory= --CoalesceStreamsPreprocessor.enabled=True]
+--no-prompt
+    Exclude input and output prompts from converted document.
+    Equivalent to: [--TemplateExporter.exclude_input_prompt=True --TemplateExporter.exclude_output_prompt=True]
+--no-input
+    Exclude input cells and output prompts from converted document.
+            This mode is ideal for generating code-free reports.
+    Equivalent to: [--TemplateExporter.exclude_output_prompt=True --TemplateExporter.exclude_input=True --TemplateExporter.exclude_input_prompt=True]
+--allow-chromium-download
+    Whether to allow downloading chromium if no suitable version is found on the system.
+    Equivalent to: [--WebPDFExporter.allow_chromium_download=True]
+--disable-chromium-sandbox
+    Disable chromium security sandbox when converting to PDF..
+    Equivalent to: [--WebPDFExporter.disable_sandbox=True]
+--show-input
+    Shows code input. This flag is only useful for dejavu users.
+    Equivalent to: [--TemplateExporter.exclude_input=False]
+--embed-images
+    Embed the images as base64 dataurls in the output. This flag is only useful for the HTML/WebPDF/Slides exports.
+    Equivalent to: [--HTMLExporter.embed_images=True]
+--sanitize-html
+    Whether the HTML in Markdown cells and cell outputs should be sanitized..
+    Equivalent to: [--HTMLExporter.sanitize_html=True]
+--log-level=<Enum>
+    Set the log level by value or name.
+    Choices: any of [0, 10, 20, 30, 40, 50, 'DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL']
+    Default: 30
+    Equivalent to: [--Application.log_level]
+--config=<Unicode>
+    Full path of a config file.
+    Default: ''
+    Equivalent to: [--JupyterApp.config_file]
+--to=<Unicode>
+    The export format to be used, either one of the built-in formats
+    ['asciidoc', 'custom', 'html', 'latex', 'markdown', 'notebook', 'pdf',
+    'python', 'qtpdf', 'qtpng', 'rst', 'script', 'slides', 'webpdf'] or a dotted
+    object name that represents the import path for an ``Exporter`` class
+    Default: ''
+    Equivalent to: [--NbConvertApp.export_format]
+--template=<Unicode>
+    Name of the template to use
+    Default: ''
+    Equivalent to: [--TemplateExporter.template_name]
+--template-file=<Unicode>
+    Name of the template file to use
+    Default: None
+    Equivalent to: [--TemplateExporter.template_file]
+--theme=<Unicode>
+    Template specific theme(e.g. the name of a JupyterLab CSS theme distributed
+    as prebuilt extension for the lab template)
+    Default: 'light'
+    Equivalent to: [--HTMLExporter.theme]
+--sanitize_html=<Bool>
+    Whether the HTML in Markdown cells and cell outputs should be sanitized.This
+    should be set to True by nbviewer or similar tools.
+    Default: False
+    Equivalent to: [--HTMLExporter.sanitize_html]
+--writer=<DottedObjectName>
+    Writer class used to write the results of the conversion
+    Default: 'FilesWriter'
+    Equivalent to: [--NbConvertApp.writer_class]
+--post=<DottedOrNone>
+    PostProcessor class used to write the results of the conversion
+    Default: ''
+    Equivalent to: [--NbConvertApp.postprocessor_class]
+--output=<Unicode>
+    Overwrite base name use for output files. Supports pattern replacements
+    '{notebook_name}'.
+    Default: '{notebook_name}'
+    Equivalent to: [--NbConvertApp.output_base]
+--output-dir=<Unicode>
+    Directory to write output(s) to. Defaults to output to the directory of each
+    notebook. To recover previous default behaviour (outputting to the current
+    working directory) use . as the flag value.
+    Default: ''
+    Equivalent to: [--FilesWriter.build_directory]
+--reveal-prefix=<Unicode>
+    The URL prefix for reveal.js (version 3.x). This defaults to the reveal CDN,
+    but can be any url pointing to a copy of reveal.js.
+
+    For speaker notes to work, this must be a relative path to a local copy of
+    reveal.js: e.g., "reveal.js".
+
+    If a relative path is given, it must be a subdirectory of the current
+    directory (from which the server is run).
+
+    See the usage documentation
+    (https://nbconvert.readthedocs.io/en/latest/usage.html#reveal-js-html-
+    slideshow) for more details.
+    Default: ''
+    Equivalent to: [--SlidesExporter.reveal_url_prefix]
+--nbformat=<Enum>
+    The nbformat version to write. Use this to downgrade notebooks.
+    Choices: any of [1, 2, 3, 4]
+    Default: 4
+    Equivalent to: [--NotebookExporter.nbformat_version]
+
+Examples
+--------
+
+    The simplest way to use nbconvert is
+
+            > jupyter nbconvert mynotebook.ipynb --to html
+
+            Options include ['asciidoc', 'custom', 'html', 'latex', 'markdown', 'notebook', 'pdf', 'python', 'qtpdf', 'qtpng', 'rst', 'script', 'slides', 'webpdf'].
+
+            > jupyter nbconvert --to latex mynotebook.ipynb
+
+            Both HTML and LaTeX support multiple output templates. LaTeX includes
+            'base', 'article' and 'report'.  HTML includes 'basic', 'lab' and
+            'classic'. You can specify the flavor of the format used.
+
+            > jupyter nbconvert --to html --template lab mynotebook.ipynb
+
+            You can also pipe the output to stdout, rather than a file
+
+            > jupyter nbconvert mynotebook.ipynb --stdout
+
+            PDF is generated via latex
+
+            > jupyter nbconvert mynotebook.ipynb --to pdf
+
+            You can get (and serve) a Reveal.js-powered slideshow
+
+            > jupyter nbconvert myslides.ipynb --to slides --post serve
+
+            Multiple notebooks can be given at the command line in a couple of
+            different ways:
+
+            > jupyter nbconvert notebook*.ipynb
+            > jupyter nbconvert notebook1.ipynb notebook2.ipynb
+
+            or you can specify the notebooks list in a config file, containing::
+
+                c.NbConvertApp.notebooks = ["my_notebook.ipynb"]
+
+            > jupyter nbconvert --config mycfg.py
+
+To see all available configurables, use `--help-all`.
+
++ for nb in 01_data 02_training_evaluation 04_training_progress
++ jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=3600 .ipynb
+[NbConvertApp] WARNING | pattern '.ipynb' matched no files
+This application is used to convert notebook files (*.ipynb) to various other
+formats.
+
+WARNING: THE COMMANDLINE INTERFACE MAY CHANGE IN FUTURE RELEASES.
+
+Options
+=======
+The options below are convenience aliases to configurable class-options,
+as listed in the "Equivalent to" description-line of the aliases.
+To see all configurable class-options for some <cmd>, use:
+    <cmd> --help-all
+
+--debug
+    set log level to logging.DEBUG (maximize logging output)
+    Equivalent to: [--Application.log_level=10]
+--show-config
+    Show the application's configuration (human-readable format)
+    Equivalent to: [--Application.show_config=True]
+--show-config-json
+    Show the application's configuration (json format)
+    Equivalent to: [--Application.show_config_json=True]
+--generate-config
+    generate default config file
+    Equivalent to: [--JupyterApp.generate_config=True]
+-y
+    Answer yes to any questions instead of prompting.
+    Equivalent to: [--JupyterApp.answer_yes=True]
+--execute
+    Execute the notebook prior to export.
+    Equivalent to: [--ExecutePreprocessor.enabled=True]
+--allow-errors
+    Continue notebook execution even if one of the cells throws an error and include the error message in the cell output (the default behaviour is to abort conversion). This flag is only relevant if '--execute' was specified, too.
+    Equivalent to: [--ExecutePreprocessor.allow_errors=True]
+--stdin
+    read a single notebook file from stdin. Write the resulting notebook with default basename 'notebook.*'
+    Equivalent to: [--NbConvertApp.from_stdin=True]
+--stdout
+    Write notebook output to stdout instead of files.
+    Equivalent to: [--NbConvertApp.writer_class=StdoutWriter]
+--inplace
+    Run nbconvert in place, overwriting the existing notebook (only
+            relevant when converting to notebook format)
+    Equivalent to: [--NbConvertApp.use_output_suffix=False --NbConvertApp.export_format=notebook --FilesWriter.build_directory=]
+--clear-output
+    Clear output of current file and save in place,
+            overwriting the existing notebook.
+    Equivalent to: [--NbConvertApp.use_output_suffix=False --NbConvertApp.export_format=notebook --FilesWriter.build_directory= --ClearOutputPreprocessor.enabled=True]
+--coalesce-streams
+    Coalesce consecutive stdout and stderr outputs into one stream (within each cell).
+    Equivalent to: [--NbConvertApp.use_output_suffix=False --NbConvertApp.export_format=notebook --FilesWriter.build_directory= --CoalesceStreamsPreprocessor.enabled=True]
+--no-prompt
+    Exclude input and output prompts from converted document.
+    Equivalent to: [--TemplateExporter.exclude_input_prompt=True --TemplateExporter.exclude_output_prompt=True]
+--no-input
+    Exclude input cells and output prompts from converted document.
+            This mode is ideal for generating code-free reports.
+    Equivalent to: [--TemplateExporter.exclude_output_prompt=True --TemplateExporter.exclude_input=True --TemplateExporter.exclude_input_prompt=True]
+--allow-chromium-download
+    Whether to allow downloading chromium if no suitable version is found on the system.
+    Equivalent to: [--WebPDFExporter.allow_chromium_download=True]
+--disable-chromium-sandbox
+    Disable chromium security sandbox when converting to PDF..
+    Equivalent to: [--WebPDFExporter.disable_sandbox=True]
+--show-input
+    Shows code input. This flag is only useful for dejavu users.
+    Equivalent to: [--TemplateExporter.exclude_input=False]
+--embed-images
+    Embed the images as base64 dataurls in the output. This flag is only useful for the HTML/WebPDF/Slides exports.
+    Equivalent to: [--HTMLExporter.embed_images=True]
+--sanitize-html
+    Whether the HTML in Markdown cells and cell outputs should be sanitized..
+    Equivalent to: [--HTMLExporter.sanitize_html=True]
+--log-level=<Enum>
+    Set the log level by value or name.
+    Choices: any of [0, 10, 20, 30, 40, 50, 'DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL']
+    Default: 30
+    Equivalent to: [--Application.log_level]
+--config=<Unicode>
+    Full path of a config file.
+    Default: ''
+    Equivalent to: [--JupyterApp.config_file]
+--to=<Unicode>
+    The export format to be used, either one of the built-in formats
+    ['asciidoc', 'custom', 'html', 'latex', 'markdown', 'notebook', 'pdf',
+    'python', 'qtpdf', 'qtpng', 'rst', 'script', 'slides', 'webpdf'] or a dotted
+    object name that represents the import path for an ``Exporter`` class
+    Default: ''
+    Equivalent to: [--NbConvertApp.export_format]
+--template=<Unicode>
+    Name of the template to use
+    Default: ''
+    Equivalent to: [--TemplateExporter.template_name]
+--template-file=<Unicode>
+    Name of the template file to use
+    Default: None
+    Equivalent to: [--TemplateExporter.template_file]
+--theme=<Unicode>
+    Template specific theme(e.g. the name of a JupyterLab CSS theme distributed
+    as prebuilt extension for the lab template)
+    Default: 'light'
+    Equivalent to: [--HTMLExporter.theme]
+--sanitize_html=<Bool>
+    Whether the HTML in Markdown cells and cell outputs should be sanitized.This
+    should be set to True by nbviewer or similar tools.
+    Default: False
+    Equivalent to: [--HTMLExporter.sanitize_html]
+--writer=<DottedObjectName>
+    Writer class used to write the results of the conversion
+    Default: 'FilesWriter'
+    Equivalent to: [--NbConvertApp.writer_class]
+--post=<DottedOrNone>
+    PostProcessor class used to write the results of the conversion
+    Default: ''
+    Equivalent to: [--NbConvertApp.postprocessor_class]
+--output=<Unicode>
+    Overwrite base name use for output files. Supports pattern replacements
+    '{notebook_name}'.
+    Default: '{notebook_name}'
+    Equivalent to: [--NbConvertApp.output_base]
+--output-dir=<Unicode>
+    Directory to write output(s) to. Defaults to output to the directory of each
+    notebook. To recover previous default behaviour (outputting to the current
+    working directory) use . as the flag value.
+    Default: ''
+    Equivalent to: [--FilesWriter.build_directory]
+--reveal-prefix=<Unicode>
+    The URL prefix for reveal.js (version 3.x). This defaults to the reveal CDN,
+    but can be any url pointing to a copy of reveal.js.
+
+    For speaker notes to work, this must be a relative path to a local copy of
+    reveal.js: e.g., "reveal.js".
+
+    If a relative path is given, it must be a subdirectory of the current
+    directory (from which the server is run).
+
+    See the usage documentation
+    (https://nbconvert.readthedocs.io/en/latest/usage.html#reveal-js-html-
+    slideshow) for more details.
+    Default: ''
+    Equivalent to: [--SlidesExporter.reveal_url_prefix]
+--nbformat=<Enum>
+    The nbformat version to write. Use this to downgrade notebooks.
+    Choices: any of [1, 2, 3, 4]
+    Default: 4
+    Equivalent to: [--NotebookExporter.nbformat_version]
+
+Examples
+--------
+
+    The simplest way to use nbconvert is
+
+            > jupyter nbconvert mynotebook.ipynb --to html
+
+            Options include ['asciidoc', 'custom', 'html', 'latex', 'markdown', 'notebook', 'pdf', 'python', 'qtpdf', 'qtpng', 'rst', 'script', 'slides', 'webpdf'].
+
+            > jupyter nbconvert --to latex mynotebook.ipynb
+
+            Both HTML and LaTeX support multiple output templates. LaTeX includes
+            'base', 'article' and 'report'.  HTML includes 'basic', 'lab' and
+            'classic'. You can specify the flavor of the format used.
+
+            > jupyter nbconvert --to html --template lab mynotebook.ipynb
+
+            You can also pipe the output to stdout, rather than a file
+
+            > jupyter nbconvert mynotebook.ipynb --stdout
+
+            PDF is generated via latex
+
+            > jupyter nbconvert mynotebook.ipynb --to pdf
+
+            You can get (and serve) a Reveal.js-powered slideshow
+
+            > jupyter nbconvert myslides.ipynb --to slides --post serve
+
+            Multiple notebooks can be given at the command line in a couple of
+            different ways:
+
+            > jupyter nbconvert notebook*.ipynb
+            > jupyter nbconvert notebook1.ipynb notebook2.ipynb
+
+            or you can specify the notebooks list in a config file, containing::
+
+                c.NbConvertApp.notebooks = ["my_notebook.ipynb"]
+
+            > jupyter nbconvert --config mycfg.py
+
+To see all available configurables, use `--help-all`.
+
++ for nb in 01_data 02_training_evaluation 04_training_progress
++ jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=3600 .ipynb
+[NbConvertApp] WARNING | pattern '.ipynb' matched no files
+This application is used to convert notebook files (*.ipynb) to various other
+formats.
+
+WARNING: THE COMMANDLINE INTERFACE MAY CHANGE IN FUTURE RELEASES.
+
+Options
+=======
+The options below are convenience aliases to configurable class-options,
+as listed in the "Equivalent to" description-line of the aliases.
+To see all configurable class-options for some <cmd>, use:
+    <cmd> --help-all
+
+--debug
+    set log level to logging.DEBUG (maximize logging output)
+    Equivalent to: [--Application.log_level=10]
+--show-config
+    Show the application's configuration (human-readable format)
+    Equivalent to: [--Application.show_config=True]
+--show-config-json
+    Show the application's configuration (json format)
+    Equivalent to: [--Application.show_config_json=True]
+--generate-config
+    generate default config file
+    Equivalent to: [--JupyterApp.generate_config=True]
+-y
+    Answer yes to any questions instead of prompting.
+    Equivalent to: [--JupyterApp.answer_yes=True]
+--execute
+    Execute the notebook prior to export.
+    Equivalent to: [--ExecutePreprocessor.enabled=True]
+--allow-errors
+    Continue notebook execution even if one of the cells throws an error and include the error message in the cell output (the default behaviour is to abort conversion). This flag is only relevant if '--execute' was specified, too.
+    Equivalent to: [--ExecutePreprocessor.allow_errors=True]
+--stdin
+    read a single notebook file from stdin. Write the resulting notebook with default basename 'notebook.*'
+    Equivalent to: [--NbConvertApp.from_stdin=True]
+--stdout
+    Write notebook output to stdout instead of files.
+    Equivalent to: [--NbConvertApp.writer_class=StdoutWriter]
+--inplace
+    Run nbconvert in place, overwriting the existing notebook (only
+            relevant when converting to notebook format)
+    Equivalent to: [--NbConvertApp.use_output_suffix=False --NbConvertApp.export_format=notebook --FilesWriter.build_directory=]
+--clear-output
+    Clear output of current file and save in place,
+            overwriting the existing notebook.
+    Equivalent to: [--NbConvertApp.use_output_suffix=False --NbConvertApp.export_format=notebook --FilesWriter.build_directory= --ClearOutputPreprocessor.enabled=True]
+--coalesce-streams
+    Coalesce consecutive stdout and stderr outputs into one stream (within each cell).
+    Equivalent to: [--NbConvertApp.use_output_suffix=False --NbConvertApp.export_format=notebook --FilesWriter.build_directory= --CoalesceStreamsPreprocessor.enabled=True]
+--no-prompt
+    Exclude input and output prompts from converted document.
+    Equivalent to: [--TemplateExporter.exclude_input_prompt=True --TemplateExporter.exclude_output_prompt=True]
+--no-input
+    Exclude input cells and output prompts from converted document.
+            This mode is ideal for generating code-free reports.
+    Equivalent to: [--TemplateExporter.exclude_output_prompt=True --TemplateExporter.exclude_input=True --TemplateExporter.exclude_input_prompt=True]
+--allow-chromium-download
+    Whether to allow downloading chromium if no suitable version is found on the system.
+    Equivalent to: [--WebPDFExporter.allow_chromium_download=True]
+--disable-chromium-sandbox
+    Disable chromium security sandbox when converting to PDF..
+    Equivalent to: [--WebPDFExporter.disable_sandbox=True]
+--show-input
+    Shows code input. This flag is only useful for dejavu users.
+    Equivalent to: [--TemplateExporter.exclude_input=False]
+--embed-images
+    Embed the images as base64 dataurls in the output. This flag is only useful for the HTML/WebPDF/Slides exports.
+    Equivalent to: [--HTMLExporter.embed_images=True]
+--sanitize-html
+    Whether the HTML in Markdown cells and cell outputs should be sanitized..
+    Equivalent to: [--HTMLExporter.sanitize_html=True]
+--log-level=<Enum>
+    Set the log level by value or name.
+    Choices: any of [0, 10, 20, 30, 40, 50, 'DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL']
+    Default: 30
+    Equivalent to: [--Application.log_level]
+--config=<Unicode>
+    Full path of a config file.
+    Default: ''
+    Equivalent to: [--JupyterApp.config_file]
+--to=<Unicode>
+    The export format to be used, either one of the built-in formats
+    ['asciidoc', 'custom', 'html', 'latex', 'markdown', 'notebook', 'pdf',
+    'python', 'qtpdf', 'qtpng', 'rst', 'script', 'slides', 'webpdf'] or a dotted
+    object name that represents the import path for an ``Exporter`` class
+    Default: ''
+    Equivalent to: [--NbConvertApp.export_format]
+--template=<Unicode>
+    Name of the template to use
+    Default: ''
+    Equivalent to: [--TemplateExporter.template_name]
+--template-file=<Unicode>
+    Name of the template file to use
+    Default: None
+    Equivalent to: [--TemplateExporter.template_file]
+--theme=<Unicode>
+    Template specific theme(e.g. the name of a JupyterLab CSS theme distributed
+    as prebuilt extension for the lab template)
+    Default: 'light'
+    Equivalent to: [--HTMLExporter.theme]
+--sanitize_html=<Bool>
+    Whether the HTML in Markdown cells and cell outputs should be sanitized.This
+    should be set to True by nbviewer or similar tools.
+    Default: False
+    Equivalent to: [--HTMLExporter.sanitize_html]
+--writer=<DottedObjectName>
+    Writer class used to write the results of the conversion
+    Default: 'FilesWriter'
+    Equivalent to: [--NbConvertApp.writer_class]
+--post=<DottedOrNone>
+    PostProcessor class used to write the results of the conversion
+    Default: ''
+    Equivalent to: [--NbConvertApp.postprocessor_class]
+--output=<Unicode>
+    Overwrite base name use for output files. Supports pattern replacements
+    '{notebook_name}'.
+    Default: '{notebook_name}'
+    Equivalent to: [--NbConvertApp.output_base]
+--output-dir=<Unicode>
+    Directory to write output(s) to. Defaults to output to the directory of each
+    notebook. To recover previous default behaviour (outputting to the current
+    working directory) use . as the flag value.
+    Default: ''
+    Equivalent to: [--FilesWriter.build_directory]
+--reveal-prefix=<Unicode>
+    The URL prefix for reveal.js (version 3.x). This defaults to the reveal CDN,
+    but can be any url pointing to a copy of reveal.js.
+
+    For speaker notes to work, this must be a relative path to a local copy of
+    reveal.js: e.g., "reveal.js".
+
+    If a relative path is given, it must be a subdirectory of the current
+    directory (from which the server is run).
+
+    See the usage documentation
+    (https://nbconvert.readthedocs.io/en/latest/usage.html#reveal-js-html-
+    slideshow) for more details.
+    Default: ''
+    Equivalent to: [--SlidesExporter.reveal_url_prefix]
+--nbformat=<Enum>
+    The nbformat version to write. Use this to downgrade notebooks.
+    Choices: any of [1, 2, 3, 4]
+    Default: 4
+    Equivalent to: [--NotebookExporter.nbformat_version]
+
+Examples
+--------
+
+    The simplest way to use nbconvert is
+
+            > jupyter nbconvert mynotebook.ipynb --to html
+
+            Options include ['asciidoc', 'custom', 'html', 'latex', 'markdown', 'notebook', 'pdf', 'python', 'qtpdf', 'qtpng', 'rst', 'script', 'slides', 'webpdf'].
+
+            > jupyter nbconvert --to latex mynotebook.ipynb
+
+            Both HTML and LaTeX support multiple output templates. LaTeX includes
+            'base', 'article' and 'report'.  HTML includes 'basic', 'lab' and
+            'classic'. You can specify the flavor of the format used.
+
+            > jupyter nbconvert --to html --template lab mynotebook.ipynb
+
+            You can also pipe the output to stdout, rather than a file
+
+            > jupyter nbconvert mynotebook.ipynb --stdout
+
+            PDF is generated via latex
+
+            > jupyter nbconvert mynotebook.ipynb --to pdf
+
+            You can get (and serve) a Reveal.js-powered slideshow
+
+            > jupyter nbconvert myslides.ipynb --to slides --post serve
+
+            Multiple notebooks can be given at the command line in a couple of
+            different ways:
+
+            > jupyter nbconvert notebook*.ipynb
+            > jupyter nbconvert notebook1.ipynb notebook2.ipynb
+
+            or you can specify the notebooks list in a config file, containing::
+
+                c.NbConvertApp.notebooks = ["my_notebook.ipynb"]
+
+            > jupyter nbconvert --config mycfg.py
+
+To see all available configurables, use `--help-all`.
+
++ echo VIZ_DONE
+VIZ_DONE

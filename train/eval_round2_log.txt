@@ -1,0 +1,49 @@
+nohup: ignoring input
+130 test tiles; models ['E3', 'E1', 'E5', 'E2b']
+  10/130 tiles
+  20/130 tiles
+  30/130 tiles
+  40/130 tiles
+  50/130 tiles
+  60/130 tiles
+  70/130 tiles
+  80/130 tiles
+  90/130 tiles
+  100/130 tiles
+  110/130 tiles
+  120/130 tiles
+  130/130 tiles
+
+Maps (one row per variant):
+                            OA   mIoU  built_P  built_R  flip_rate  built_false_change
+variant                                                                               
+E3 single                0.661  0.522    0.815    0.854      0.133               0.020
+E3 + smooth3             0.667  0.528    0.817    0.857      0.065               0.008
+ensemble (E3+E1+E5+E2b)  0.682  0.544    0.826    0.852      0.116               0.018
+ensemble + smooth3       0.688  0.549    0.827    0.856      0.059               0.007
+
+New built-up over 12 months (vs labels; 'false' = not new in the labels):
+                                            new_ha_km2  false_new_ha_km2  change_P
+variant                 change_rule                                               
+E3 single               argmax                   0.431             0.392     0.090
+                        confident 0.5/0.2        0.018             0.009     0.505
+                        confident 0.5/0.35       0.063             0.046     0.272
+                        confident 0.6/0.2        0.010             0.004     0.574
+                        confident 0.7/0.3        0.011             0.006     0.497
+E3 + smooth3            argmax                   0.582             0.535     0.080
+                        confident 0.5/0.2        0.017             0.008     0.551
+                        confident 0.5/0.35       0.077             0.060     0.226
+                        confident 0.6/0.2        0.012             0.005     0.584
+                        confident 0.7/0.3        0.014             0.007     0.461
+ensemble (E3+E1+E5+E2b) argmax                   0.452             0.411     0.091
+                        confident 0.5/0.2        0.011             0.004     0.626
+                        confident 0.5/0.35       0.047             0.032     0.309
+                        confident 0.6/0.2        0.008             0.003     0.604
+                        confident 0.7/0.3        0.011             0.005     0.490
+ensemble + smooth3      argmax                   0.633             0.585     0.077
+                        confident 0.5/0.2        0.014             0.005     0.615
+                        confident 0.5/0.35       0.058             0.043     0.264
+                        confident 0.6/0.2        0.010             0.004     0.622
+                        confident 0.7/0.3        0.012             0.006     0.470
+
+Saved runs/ensemble_eval_round2.csv

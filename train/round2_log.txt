@@ -1,0 +1,164 @@
++ python3 train.py --prep-dir ../data/tiles_v0/prepared --name E3s1 --label hyb_s --upsample transposed --seed 1
++ python3 train.py --prep-dir ../data/tiles_v0/prepared --name E1s1 --label hyb_s --seed 1
++ python3 train.py --prep-dir ../data/tiles_v0/prepared --name E6 --label hyb_s --upsample transposed --dropout 0.2 --jitter-db 1.5 --noise-db 0.5 --lovasz 0.5
++ for r in E3s1 E1s1 E6
++ python3 eval_change.py --run runs/E3s1 --prep-dir ../data/tiles_v0/prepared --label hyb_s
+E3s1: 130 test tiles, label hyb_s, lee False
+  20/130 tiles
+  40/130 tiles
+  60/130 tiles
+  80/130 tiles
+  100/130 tiles
+  120/130 tiles
+
+                    OA   mIoU  built_P  built_R  flip_rate  built_false_change  new_built_pred_ha_km2  new_built_label_ha_km2  false_new_ha_km2  change_P  change_R
+strategy                                                                                                                                                           
+A best scene     0.648  0.504    0.829    0.813      0.231               0.043                  0.509                   0.802             0.470     0.077     0.049
+D best, 1 orbit  0.648  0.505    0.829    0.814      0.220               0.040                  0.491                   0.803             0.457     0.068     0.041
+B month mean     0.668  0.527    0.836    0.830      0.137               0.021                  0.435                   0.806             0.395     0.092     0.050
+C mean, 1 orbit  0.666  0.526    0.838    0.827      0.143               0.022                  0.470                   0.806             0.431     0.082     0.048
+
+Saved runs/E3s1/change_eval.csv
++ for r in E3s1 E1s1 E6
++ python3 eval_change.py --run runs/E1s1 --prep-dir ../data/tiles_v0/prepared --label hyb_s
+E1s1: 130 test tiles, label hyb_s, lee False
+  20/130 tiles
+  40/130 tiles
+  60/130 tiles
+  80/130 tiles
+  100/130 tiles
+  120/130 tiles
+
+                    OA   mIoU  built_P  built_R  flip_rate  built_false_change  new_built_pred_ha_km2  new_built_label_ha_km2  false_new_ha_km2  change_P  change_R
+strategy                                                                                                                                                           
+A best scene     0.647  0.504    0.835    0.806      0.214               0.040                  0.421                   0.802             0.387     0.082     0.043
+D best, 1 orbit  0.648  0.506    0.837    0.807      0.207               0.038                  0.403                   0.803             0.372     0.076     0.038
+B month mean     0.663  0.524    0.842    0.822      0.127               0.020                  0.391                   0.806             0.351     0.102     0.050
+C mean, 1 orbit  0.661  0.521    0.844    0.819      0.133               0.021                  0.389                   0.806             0.353     0.094     0.045
+
+Saved runs/E1s1/change_eval.csv
++ for r in E3s1 E1s1 E6
++ python3 eval_change.py --run runs/E6 --prep-dir ../data/tiles_v0/prepared --label hyb_s
+E6: 130 test tiles, label hyb_s, lee False
+  20/130 tiles
+  40/130 tiles
+  60/130 tiles
+  80/130 tiles
+  100/130 tiles
+  120/130 tiles
+
+                    OA   mIoU  built_P  built_R  flip_rate  built_false_change  new_built_pred_ha_km2  new_built_label_ha_km2  false_new_ha_km2  change_P  change_R
+strategy                                                                                                                                                           
+A best scene     0.626  0.483    0.844    0.805      0.231               0.038                  0.619                   0.802             0.569     0.081     0.062
+D best, 1 orbit  0.630  0.489    0.845    0.805      0.220               0.035                  0.632                   0.803             0.582     0.079     0.062
+B month mean     0.641  0.501    0.849    0.820      0.143               0.019                  0.672                   0.806             0.612     0.089     0.074
+C mean, 1 orbit  0.640  0.499    0.848    0.818      0.152               0.020                  0.679                   0.806             0.618     0.089     0.075
+
+Saved runs/E6/change_eval.csv
++ python3 eval_ensemble.py --prep-dir ../data/tiles_v0/prepared --runs runs/E3 runs/E1 runs/E5 runs/E2b --no-tta --out ensemble_eval_round2.csv
+130 test tiles; models ['E3', 'E1', 'E5', 'E2b']
+  10/130 tiles
+  20/130 tiles
+  30/130 tiles
+  40/130 tiles
+  50/130 tiles
+  60/130 tiles
+  70/130 tiles
+  80/130 tiles
+  90/130 tiles
+  100/130 tiles
+  110/130 tiles
+  120/130 tiles
+  130/130 tiles
+
+Maps (one row per variant):
+                            OA   mIoU  built_P  built_R  flip_rate  built_false_change
+variant                                                                               
+E3 single                0.661  0.522    0.815    0.854      0.133               0.020
+E3 + smooth3             0.667  0.528    0.817    0.857      0.065               0.008
+ensemble (E3+E1+E5+E2b)  0.682  0.544    0.826    0.852      0.116               0.018
+ensemble + smooth3       0.688  0.549    0.827    0.856      0.059               0.007
+
+New built-up over 12 months (vs labels; 'false' = not new in the labels):
+                                           new_ha_km2  false_new_ha_km2  change_P
+variant                 change_rule                                              
+E3 single               argmax                  0.431             0.392     0.090
+                        confident 0.5/0.2       0.018             0.009     0.505
+                        confident 0.6/0.2       0.010             0.004     0.574
+                        confident 0.7/0.3       0.011             0.006     0.497
+E3 + smooth3            argmax                  0.582             0.535     0.080
+                        confident 0.5/0.2       0.017             0.008     0.551
+                        confident 0.6/0.2       0.012             0.005     0.584
+                        confident 0.7/0.3       0.014             0.007     0.461
+ensemble (E3+E1+E5+E2b) argmax                  0.452             0.411     0.091
+                        confident 0.5/0.2       0.011             0.004     0.626
+                        confident 0.6/0.2       0.008             0.003     0.604
+                        confident 0.7/0.3       0.011             0.005     0.490
+ensemble + smooth3      argmax                  0.633             0.585     0.077
+                        confident 0.5/0.2       0.014             0.005     0.615
+                        confident 0.6/0.2       0.010             0.004     0.622
+                        confident 0.7/0.3       0.012             0.006     0.470
+
+Saved runs/ensemble_eval_round2.csv
++ python3 eval_ensemble.py --prep-dir ../data/tiles_v0/prepared --runs runs/E6 runs/E3 runs/E1 runs/E5 runs/E2b --no-tta --out ensemble_eval_with_E6.csv
+130 test tiles; models ['E6', 'E3', 'E1', 'E5', 'E2b']
+  10/130 tiles
+  20/130 tiles
+  30/130 tiles
+  40/130 tiles
+  50/130 tiles
+  60/130 tiles
+  70/130 tiles
+  80/130 tiles
+  90/130 tiles
+  100/130 tiles
+  110/130 tiles
+  120/130 tiles
+  130/130 tiles
+
+Maps (one row per variant):
+                               OA   mIoU  built_P  built_R  flip_rate  built_false_change
+variant                                                                                  
+E6 single                   0.641  0.501    0.849    0.820      0.143               0.019
+E6 + smooth3                0.648  0.508    0.850    0.825      0.069               0.008
+ensemble (E6+E3+E1+E5+E2b)  0.685  0.547    0.831    0.849      0.116               0.017
+ensemble + smooth3          0.689  0.551    0.832    0.852      0.058               0.007
+
+New built-up over 12 months (vs labels; 'false' = not new in the labels):
+                                              new_ha_km2  false_new_ha_km2  change_P
+variant                    change_rule                                              
+E6 single                  argmax                  0.672             0.612     0.089
+                           confident 0.5/0.2       0.034             0.024     0.293
+                           confident 0.6/0.2       0.020             0.013     0.360
+                           confident 0.7/0.3       0.021             0.013     0.368
+E6 + smooth3               argmax                  0.919             0.851     0.074
+                           confident 0.5/0.2       0.029             0.018     0.365
+                           confident 0.6/0.2       0.016             0.008     0.489
+                           confident 0.7/0.3       0.022             0.014     0.375
+ensemble (E6+E3+E1+E5+E2b) argmax                  0.471             0.427     0.092
+                           confident 0.5/0.2       0.012             0.005     0.595
+                           confident 0.6/0.2       0.008             0.003     0.590
+                           confident 0.7/0.3       0.011             0.006     0.496
+ensemble + smooth3         argmax                  0.624             0.572     0.084
+                           confident 0.5/0.2       0.015             0.006     0.604
+                           confident 0.6/0.2       0.010             0.004     0.610
+                           confident 0.7/0.3       0.012             0.006     0.475
+
+Saved runs/ensemble_eval_with_E6.csv
++ python3 compare_runs.py runs E1 E1s1 E3 E3s1 E6 E0 E2b E2a E5 E1y E1half
+   run label  weights  frozen   upsample   lee    OA  mIoU  macro_F1  mIoU_city  mIoU_none  mIoU_town  mIoU_village  village_built_recall  built_P  built_R  built_false_change  false_new_ha_km2  flip_pred  flip_label  best_epoch
+    E1 hyb_s imagenet   False     interp False 0.632 0.487     0.638      0.434      0.348      0.432         0.411                 0.427    0.835    0.807               0.044             0.508      0.253       0.089          24
+  E1s1 hyb_s imagenet   False     interp False 0.642 0.497     0.649      0.414      0.375      0.440         0.429                 0.502    0.834    0.807               0.040             0.387      0.216       0.089          15
+    E3 hyb_s imagenet   False transposed False 0.637 0.490     0.644      0.397      0.348      0.454         0.413                 0.485    0.807    0.838               0.042             0.482      0.228       0.089          17
+  E3s1 hyb_s imagenet   False transposed False 0.646 0.500     0.651      0.423      0.395      0.432         0.412                 0.480    0.826    0.815               0.043             0.472      0.232       0.089           9
+    E6 hyb_s imagenet   False transposed False 0.619 0.475     0.622      0.418      0.337      0.445         0.413                 0.426    0.842    0.801               0.038             0.570      0.234       0.089          23
+    E0    dw imagenet   False     interp False 0.626 0.487     0.640      0.421      0.382      0.426         0.409                 0.366    0.796    0.792               0.047             0.881      0.247       0.151          14
+   E2b hyb_s     none   False     interp False 0.629 0.482     0.634      0.394      0.368      0.423         0.400                 0.525    0.799    0.825               0.045             0.498      0.229       0.089          14
+   E2a hyb_s imagenet    True     interp False 0.609 0.462     0.613      0.399      0.325      0.407         0.375                 0.423    0.821    0.791               0.049             0.572      0.295       0.089          11
+    E5 hyb_s imagenet   False     interp  True 0.635 0.493     0.643      0.401      0.376      0.453         0.407                 0.447    0.818    0.819               0.043             0.498      0.249       0.089          15
+   E1y hyb_y imagenet   False     interp False 0.647 0.493     0.642      0.434      0.360      0.429         0.412                 0.546    0.821    0.851               0.048             0.696      0.224       0.000          15
+E1half hyb_s imagenet   False     interp False 0.607 0.463     0.614      0.385      0.324      0.428         0.378                 0.392    0.789    0.821               0.046             0.483      0.250       0.089          18
+
+Wrote runs/comparison.csv
++ echo ROUND2_DONE
+ROUND2_DONE
