@@ -266,8 +266,9 @@ colour:
 **Reading the output.** Class shares per split: grass & shrub, trees and crops dominate; built-up is a few percent,
 water and bare less. The splits have similar mixes, so the test set represents the same kind of world as training.
 
-**What we learned.** With 9 classes the network confused grass and shrub most of the time and the scores of those
-classes were near zero; merging gave a fairer and more useful map.""")
+**Why decided before training.** The merge follows from how radar works, so it was made before the first run (no
+9-class model was trained). Classes the input cannot separate would only add speckled patches and month-to-month
+flicker, and every flicker looks like change in the prototype.""")
 
 add("NB1", "md = PREP / \"balance_report.md\"", """
 ### How and why: balancing what the network sees
