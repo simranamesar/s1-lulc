@@ -167,13 +167,21 @@ def main() -> None:
         if not tif.exists():
             rows.append({"tile_id": r.tile_id, "status": "missing tif"})
             continue
-        t = read_tile(tif)
+        try:
+            t = read_tile(tif)
+        except Exception as e:  # noqa: BLE001 - e.g. a file cut off during upload
+            print(f"  {r.tile_id}: unreadable label file, skipped ({str(e).splitlines()[0][:80]})")
+            rows.append({"tile_id": r.tile_id, "status": "unreadable tif"})
+            continue
         if scenes_dir is not None:
             sc_path = scenes_dir / f"{r.tile_id}.npz"
             if not sc_path.exists():
                 rows.append({"tile_id": r.tile_id, "status": "missing scenes"})
                 continue
             sc = np.load(sc_path)
+            if len(sc["date"]) == 0:          # every scene covered < half the tile (swath edge)
+                rows.append({"tile_id": r.tile_id, "status": "no usable scenes"})
+                continue
             dates = sc["date"].astype(str)
             month = np.array([int(d[5:7]) - 1 for d in dates], dtype=np.int8)
             day = np.array([int(d[8:10]) for d in dates], dtype=np.int8)

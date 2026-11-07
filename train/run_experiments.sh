@@ -7,6 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 [ -f ../.venv/bin/activate ] && source ../.venv/bin/activate
 export CUDA_VISIBLE_DEVICES=0
+export PYTHONUNBUFFERED=1   # print progress immediately, also into log files
 P=../data/tiles_v0/prepared
 run() { echo "=== $1 ==="; python3 train.py --prep-dir "$P" --name "$@" 2>&1 | tee "runs_$1.log"; }
 

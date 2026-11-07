@@ -35,6 +35,22 @@ the training labels, to show how much of the change is classification flicker.
 
 This Streamlit app plays the role of the Flask prediction miniapp from lab 14, with a map instead of a file upload.
 
+## Gallery mode (for the demo)
+
+`case_studies.py` runs the whole pipeline for 11 chosen places and saves the results, so the app's
+**Gallery** mode opens them instantly (no waiting for Earth Engine during a presentation). The list mixes places
+where the model should do well (fast-growing city edges: Lagos, Nairobi, Dhaka, Egypt's new capital, Phoenix), a
+stable control (Heidelberg) and places chosen because they are hard for radar (village houses in Niger, flooded
+rice in the Mekong delta, the Alps, Saharan dunes, Amazon deforestation). Each comes with a note on what to look for.
+
+```bash
+python3 case_studies.py --run ../train/runs/E1 --project scm-ksns      # ~3-5 min per place
+```
+
+**Is the change real?** The built-up tab compares the new built-up with the error level the model shows on unseen
+test places (false new built-up per km² per year, from `train/eval_change.py`): at least 3x that level = *clear
+growth*, 1.5-3x = *partly within the error level*, below = *no change detectable*.
+
 ## Accounts and keys
 
 - A **Google Earth Engine** account with a Cloud project registered for noncommercial use (we used `scm-ksns`).

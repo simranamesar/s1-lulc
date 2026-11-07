@@ -17,8 +17,9 @@ Evaluation (val each epoch, test once at the end with the best checkpoint):
 Training stops early when val mIoU has not improved for --patience epochs (lecture 05).
 Model variants (model.py): --encoder-weights imagenet|none, --freeze-encoder, --upsample interp|transposed.
 
-Outputs in runs/<name>/: config.json, history.csv, best.pt, last.pt, curves.png, test_metrics.json,
-test_per_class.csv, test_confusion.csv
+Outputs in runs/<name>/: config.json, history.csv (one row per epoch: loss, mIoU, accuracy, per-class IoU, lr),
+steps.csv (training loss after every batch), snapshots/ (predictions of fixed validation scenes after every epoch,
+for watching the model learn), best.pt, last.pt, curves.png, test_metrics.json, test_per_class.csv, test_confusion.csv
 
 Usage
     CUDA_VISIBLE_DEVICES=0 python3 train.py --prep-dir ../data/tiles_v0/prepared --label dw --name E0
@@ -57,10 +58,11 @@ class TileMonths(Dataset):
     """Samples = rows of balance.item_table: (tile, scene index, month of its label)."""
 
     def __init__(self, items: pd.DataFrame, prep_dir: Path, label_key: str, mean, std, augment: bool,
-                 lee: bool = False):
+                 lee: bool = False, jitter_db: float = 0.0, noise_db: float = 0.0):
         self.mean = np.asarray(mean, dtype=np.float32)[:, None, None]
         self.std = np.asarray(std, dtype=np.float32)[:, None, None]
         self.augment, self.lee = augment, lee
+        self.jitter_db, self.noise_db = jitter_db, noise_db
         self.data = {}
         for tid in items["tile_id"].unique():
             z = np.load(prep_dir / f"{tid}.npz")
@@ -75,6 +77,17 @@ class TileMonths(Dataset):
         s1, lbl = self.data[tid]
         scene = lee_filter_db(s1[k]) if self.lee else s1[k]
         x, y = to_tensors(scene, lbl[m], self.mean, self.std)
+        if self.augment and (self.jitter_db or self.noise_db):
+            # radiometric augmentation (E6): soil moisture, rain and calibration shift backscatter by ~1-2 dB.
+            # VV and VH get their own offset (+ pixel noise); VH-VV follows from them. Applied in dB, then scaled.
+            ok = ~(scene == S1_NODATA).any(0)
+            a, b = np.random.uniform(-self.jitter_db, self.jitter_db, 2)
+            H, W = ok.shape
+            na = np.random.normal(0, self.noise_db, (H, W)) if self.noise_db else 0
+            nb = np.random.normal(0, self.noise_db, (H, W)) if self.noise_db else 0
+            dv, dh = a + na, b + nb
+            for c, d in ((0, dv), (1, dh), (2, dh - dv)):
+                x[c] = np.where(ok, x[c] + d / self.std[c, 0, 0], x[c])
         if self.augment:
             k = np.random.randint(4)
             x, y = np.rot90(x, k, axes=(1, 2)), np.rot90(y, k)
@@ -135,19 +148,28 @@ def summarise_cm(cm: np.ndarray) -> dict:
 # ----------------------------------------------------------------------------- model / loss
 
 class CEDice(nn.Module):
-    def __init__(self, weights: torch.Tensor):
+    """Cross-entropy (class-weighted) + Dice, optionally + lovasz_w x Lovasz-softmax (a direct IoU surrogate)."""
+
+    def __init__(self, weights: torch.Tensor, lovasz_w: float = 0.0):
         super().__init__()
         import segmentation_models_pytorch as smp
         self.ce = nn.CrossEntropyLoss(weight=weights, ignore_index=IGNORE)
         self.dice = smp.losses.DiceLoss(mode="multiclass", ignore_index=IGNORE)
+        self.lovasz_w = lovasz_w
+        self.lovasz = smp.losses.LovaszLoss(mode="multiclass", ignore_index=IGNORE) if lovasz_w > 0 else None
 
     def forward(self, logits, y):
-        return self.ce(logits, y) + self.dice(logits, y)
+        loss = self.ce(logits, y) + self.dice(logits, y)
+        if self.lovasz is not None:
+            loss = loss + self.lovasz_w * self.lovasz(logits, y)
+        return loss
 
 
 # ----------------------------------------------------------------------------- loops
 
-def run_epoch(model, loader, loss_fn, device, opt=None, sched=None, amp_dtype=None):
+def run_epoch(model, loader, loss_fn, device, opt=None, sched=None, amp_dtype=None, step_log=None):
+    """One pass over loader; returns the mean loss and the confusion matrix. step_log (list): training loss and
+    learning rate of every batch are appended to it."""
     train = opt is not None
     model.train(train)
     cm = np.zeros((N_CLASSES, N_CLASSES), dtype=np.int64)
@@ -162,6 +184,8 @@ def run_epoch(model, loader, loss_fn, device, opt=None, sched=None, amp_dtype=No
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
+            if step_log is not None:
+                step_log.append((loss.item(), opt.param_groups[0]["lr"]))
             sched.step()
         total += loss.item() * x.size(0)
         n += x.size(0)
@@ -290,6 +314,64 @@ def evaluate_tiles(model, tiles: pd.DataFrame, prep_dir: Path, label_key: str, m
     return out, cm_all
 
 
+def pick_snapshot_items(items: pd.DataFrame, k: int):
+    """k fixed validation scenes to watch during training: one per settlement type (city, town, village, none,
+    then again), different world regions where possible, each a well-labelled scene with several classes."""
+    from balance import CNT_COLS
+    it = items.copy()
+    cnt = it[CNT_COLS].to_numpy(float)
+    tot = cnt.sum(1)
+    # score: labelled pixels x number of classes covering >= 5 % (interesting maps, not all one class)
+    it["score"] = tot * ((cnt / np.maximum(tot, 1)[:, None]) >= 0.05).sum(1)
+    order = ["city", "town", "village", "none"]
+    picks, used_tiles, used_reg = [], set(), set()
+    for i in range(k):
+        cand = it[(it.settlement == order[i % len(order)]) & ~it.tile_id.isin(used_tiles)]
+        if cand.empty:
+            cand = it[~it.tile_id.isin(used_tiles)]
+        if cand.empty:
+            break
+        fresh = cand[~cand.region.isin(used_reg)]
+        r = (fresh if len(fresh) else cand).sort_values("score").iloc[-1]
+        picks.append((r.tile_id, int(r["sample"]), int(r.month), str(r.settlement), str(r.region)))
+        used_tiles.add(r.tile_id); used_reg.add(r.region)
+    return picks
+
+
+class Snapshots:
+    """Saves the predictions for a few fixed validation scenes after every epoch (snapshots/ep###.npz), so a
+    notebook can show how the output maps change while the network learns."""
+
+    def __init__(self, run: Path, picks, prep_dir: Path, label_key: str, mean, std, lee: bool):
+        self.dir = run / "snapshots"
+        self.dir.mkdir(exist_ok=True)
+        mean = np.asarray(mean, np.float32)[:, None, None]
+        std = np.asarray(std, np.float32)[:, None, None]
+        xs, ys, raw = [], [], []
+        for tid, k, m, *_ in picks:
+            z = np.load(prep_dir / f"{tid}.npz")
+            sc = lee_filter_db(z["s1"][k]) if lee else z["s1"][k]
+            x, y = to_tensors(sc, z[label_key][m], mean, std)
+            xs.append(x); ys.append(y); raw.append(z["s1"][k])
+        self.x = torch.from_numpy(np.stack(xs))
+        self.y = np.stack(ys)
+        np.savez_compressed(self.dir / "examples.npz", s1=np.stack(raw), label=self.y.astype(np.int8),
+                            tile_id=np.array([p[0] for p in picks]), sample=np.array([p[1] for p in picks]),
+                            month=np.array([p[2] for p in picks]), settlement=np.array([p[3] for p in picks]),
+                            region=np.array([p[4] for p in picks]))
+
+    @torch.no_grad()
+    def save(self, model, ep: int, device, amp_dtype):
+        model.eval()
+        with torch.autocast(device_type=device.type, dtype=amp_dtype or torch.float32, enabled=amp_dtype is not None):
+            p = model(self.x.to(device)).float().softmax(1).cpu().numpy()
+        pred = p.argmax(1).astype(np.uint8)
+        np.savez_compressed(self.dir / f"ep{ep:03d}.npz", pred=pred,
+                            conf=(p.max(1) * 255).astype(np.uint8), p_built=(p[:, BUILT] * 255).astype(np.uint8))
+        ok = self.y >= 0
+        return float((pred[ok] == self.y[ok]).mean()) if ok.any() else float("nan")
+
+
 def plot_curves(hist: pd.DataFrame, path: Path) -> None:
     import matplotlib
     matplotlib.use("Agg")
@@ -332,8 +414,14 @@ def main() -> None:
     ap.add_argument("--max-ratio", type=float, default=10.0)
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--dropout", type=float, default=0.0, help="Dropout2d before the 1x1 output layer (E6: 0.2)")
+    ap.add_argument("--jitter-db", type=float, default=0.0, help="random VV / VH offset per scene, +- dB (E6: 1.5)")
+    ap.add_argument("--noise-db", type=float, default=0.0, help="random per-pixel noise, std in dB (E6: 0.5)")
+    ap.add_argument("--lovasz", type=float, default=0.0, help="weight of the Lovasz-softmax loss (E6: 0.5)")
     ap.add_argument("--train-frac", type=float, default=1.0,
                     help="use only this share of the training places (learning curve: does more data help?)")
+    ap.add_argument("--snapshots", type=int, default=6,
+                    help="save predictions of this many fixed validation scenes after every epoch (0 = off)")
     ap.add_argument("--no-amp", action="store_true")
     args = ap.parse_args()
 
@@ -371,7 +459,7 @@ def main() -> None:
     mean, std = (stats["mean_lee"], stats["std_lee"]) if args.lee else (stats["mean"], stats["std"])
     print(f"Input: {stats.get('input', 'monthly_median')}{' + Lee 5x5 filter' if args.lee else ', no speckle filter'}")
     items = {s: item_table(prep, split[s], args.label, args.min_label_frac) for s in ("train", "val")}
-    ds_train = TileMonths(items["train"], prep, args.label, mean, std, True, args.lee)
+    ds_train = TileMonths(items["train"], prep, args.label, mean, std, True, args.lee, args.jitter_db, args.noise_db)
     ds_val = TileMonths(items["val"], prep, args.label, mean, std, False, args.lee)
     print(f"Samples (scenes): train {len(ds_train)}, val {len(ds_val)}; "
           f"tiles train/val/test {len(split['train'])}/{len(split['val'])}/{len(split['test'])}")
@@ -407,14 +495,14 @@ def main() -> None:
                         pin_memory=True, persistent_workers=args.workers > 0)
 
     model = build_model(args.encoder, args.encoder_weights, args.upsample, args.freeze_encoder,
-                        classes=N_CLASSES).to(device)
+                        classes=N_CLASSES, dropout=args.dropout).to(device)
     n_all = sum(p.numel() for p in model.parameters())
     n_train = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Model: U-Net {args.encoder}, weights {args.encoder_weights}, upsample {args.upsample}, "
           f"{n_all / 1e6:.1f}M parameters ({n_train / 1e6:.1f}M trainable)")
     w = torch.tensor(loss_class_weights(seen_sh), dtype=torch.float32).to(device)
     print("Class weights: " + ", ".join(f"{n} {v:.2f}" for n, v in zip(CLASS_NAMES, w.tolist())))
-    loss_fn = CEDice(w).to(device)
+    loss_fn = CEDice(w, args.lovasz).to(device)
 
     opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=args.lr,
                             weight_decay=args.weight_decay)
@@ -423,15 +511,31 @@ def main() -> None:
     sched = torch.optim.lr_scheduler.LambdaLR(
         opt, lambda s: (s + 1) / warm if s < warm else 0.5 * (1 + math.cos(math.pi * (s - warm) / max(steps - warm, 1))))
 
-    hist, best, best_ep = [], -1.0, 0
+    snaps = None
+    if args.snapshots > 0:
+        picks = pick_snapshot_items(items["val"], args.snapshots)
+        snaps = Snapshots(run, picks, prep, args.label, mean, std, args.lee)
+        acc0 = snaps.save(model, 0, device, amp_dtype)          # epoch 0 = before any training
+        print(f"Snapshots: {len(picks)} fixed validation scenes saved after every epoch "
+              f"(epoch 0, untrained: accuracy {acc0:.3f})")
+
+    hist, step_rows, best, best_ep = [], [], -1.0, 0
     for ep in range(1, args.epochs + 1):
         t0 = time.time()
-        tr_loss, tr_cm = run_epoch(model, dl_train, loss_fn, device, opt, sched, amp_dtype)
+        step_log = []
+        tr_loss, tr_cm = run_epoch(model, dl_train, loss_fn, device, opt, sched, amp_dtype, step_log)
         with torch.no_grad():
             va_loss, va_cm = run_epoch(model, dl_val, loss_fn, device, amp_dtype=amp_dtype)
+        step_rows += [{"epoch": ep, "step": len(step_rows) + i + 1, "loss": l, "lr": lr} for i, (l, lr) in enumerate(step_log)]
+        pd.DataFrame(step_rows).to_csv(run / "steps.csv", index=False)
+        va_iou = iou_per_class(va_cm)
         row = {"epoch": ep, "train_loss": tr_loss, "val_loss": va_loss,
                "train_miou": miou(tr_cm), "val_miou": miou(va_cm), "val_oa": float(np.diag(va_cm).sum() / max(va_cm.sum(), 1)),
-               "lr": opt.param_groups[0]["lr"], "seconds": time.time() - t0}
+               "lr": opt.param_groups[0]["lr"], "seconds": time.time() - t0,
+               "train_oa": float(np.diag(tr_cm).sum() / max(tr_cm.sum(), 1)),
+               **{f"val_iou_{c}": float(v) for c, v in zip(CLASS_NAMES, va_iou)}}
+        if snaps is not None:
+            row["snapshot_acc"] = snaps.save(model, ep, device, amp_dtype)
         hist.append(row)
         pd.DataFrame(hist).to_csv(run / "history.csv", index=False)
         torch.save(model.state_dict(), run / "last.pt")
@@ -441,7 +545,8 @@ def main() -> None:
             torch.save(model.state_dict(), run / "best.pt")
             flag = "  *best"
         print(f"ep {ep:3d}  loss {tr_loss:.3f}/{va_loss:.3f}  mIoU {row['train_miou']:.3f}/{row['val_miou']:.3f}"
-              f"  val OA {row['val_oa']:.3f}  {row['seconds']:.0f}s{flag}")
+              f"  OA {row['train_oa']:.3f}/{row['val_oa']:.3f}  {row['seconds']:.0f}s{flag}")
+        print("        val IoU  " + "  ".join(f"{c} {v:.2f}" for c, v in zip(CLASS_NAMES, va_iou)))
         if ep - best_ep >= args.patience:
             print(f"Early stopping: no val mIoU gain for {args.patience} epochs (best epoch {best_ep}).")
             break

@@ -51,7 +51,7 @@ class DecoderBlock(nn.Module):
 class SegUNet(nn.Module):
     def __init__(self, encoder: str = "resnet34", encoder_weights: str | None = "imagenet",
                  in_channels: int = 3, classes: int = N_CLASSES, upsample: str = "interp",
-                 freeze_encoder: bool = False):
+                 freeze_encoder: bool = False, dropout: float = 0.0):
         super().__init__()
         import segmentation_models_pytorch as smp
 
@@ -61,6 +61,7 @@ class SegUNet(nn.Module):
         ins = [enc[-1]] + list(DECODER_CHANNELS[:-1])    # [512, 256, 128, 64, 32]
         self.decoder = nn.ModuleList(DecoderBlock(i, s, o, upsample)
                                      for i, s, o in zip(ins, skips, DECODER_CHANNELS))
+        self.drop = nn.Dropout2d(dropout) if dropout > 0 else nn.Identity()   # lecture 05 regularisation (E6)
         self.head = nn.Conv2d(DECODER_CHANNELS[-1], classes, kernel_size=1)   # 1x1 conv output (lecture 06)
 
         self.frozen = freeze_encoder
@@ -80,13 +81,14 @@ class SegUNet(nn.Module):
         skips = feats[1:-1][::-1] + [None]
         for block, skip in zip(self.decoder, skips):
             x = block(x, skip)
-        return self.head(x)
+        return self.head(self.drop(x))
 
 
 def build_model(encoder: str = "resnet34", encoder_weights: str | None = "imagenet",
-                upsample: str = "interp", freeze_encoder: bool = False, classes: int = N_CLASSES) -> SegUNet:
+                upsample: str = "interp", freeze_encoder: bool = False, classes: int = N_CLASSES,
+                dropout: float = 0.0) -> SegUNet:
     w = None if encoder_weights in (None, "none", "None") else encoder_weights
-    return SegUNet(encoder, w, classes=classes, upsample=upsample, freeze_encoder=freeze_encoder)
+    return SegUNet(encoder, w, classes=classes, upsample=upsample, freeze_encoder=freeze_encoder, dropout=dropout)
 
 
 def build_from_config(cfg: dict) -> SegUNet:

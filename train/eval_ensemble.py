@@ -1,6 +1,8 @@
 """Improvements without retraining, measured on the test places (all with month-mean maps):
 
     single        one model                                   (baseline: E3, the prototype model)
+    + smooth3     each month's probabilities averaged with the previous and next month (not wrapped
+                  around the year end), then argmax: steadier maps, idea from a fellow student's project
     + TTA         test-time augmentation: each scene also predicted flipped / rotated, probabilities averaged
     ensemble      probabilities of several models averaged (different models make different mistakes)
     ensemble+TTA  both
@@ -77,6 +79,17 @@ def month_probs(M, s1, month, device, tta: bool, batch=16):
     return acc / np.maximum(cnt, 1)[:, None], have
 
 
+def smooth3(prob, have):
+    """Mean of the month probabilities over months m-1, m, m+1 that have data (per pixel), no wrap-around."""
+    out = np.zeros_like(prob)
+    for m in range(prob.shape[0]):
+        ms = [k for k in (m - 1, m, m + 1) if 0 <= k < prob.shape[0]]
+        w = np.stack([have[k] for k in ms]).astype(np.float32)               # (n, H, W)
+        acc = sum(prob[k] * w[i][None] for i, k in enumerate(ms))
+        out[m] = acc / np.maximum(w.sum(0), 1)[None]
+    return out
+
+
 def confident_gain(pb, have, lo, hi, window=3, min_px=4):
     """New built-up from probabilities: mean P(built) >= hi over the last months, < lo in every first month."""
     from scipy import ndimage
@@ -104,15 +117,21 @@ def main():
     ap.add_argument("--split", default="test")
     ap.add_argument("--label", default="hyb_s")
     ap.add_argument("--thresholds", default="0.5:0.2,0.6:0.2,0.7:0.3", help="HI:LO pairs for the confident rule")
+    ap.add_argument("--no-tta", action="store_true", help="skip the TTA variants (4x faster)")
+    ap.add_argument("--out", default="ensemble_eval.csv", help="file name in the runs folder")
     args = ap.parse_args()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     prep = Path(args.prep_dir)
     models = [load(Path(r), device) for r in args.runs]
     base = models[0]["name"]
     thr = [tuple(float(v) for v in t.split(":")) for t in args.thresholds.split(",")]
-    variants = {f"{base} single": ([0], False), f"{base} + TTA": ([0], True),
-                f"ensemble ({'+'.join(m['name'] for m in models)})": (list(range(len(models))), False),
-                "ensemble + TTA": (list(range(len(models))), True)}
+    allm = list(range(len(models)))
+    variants = {f"{base} single": ([0], False, False), f"{base} + TTA": ([0], True, False),
+                f"{base} + smooth3": ([0], False, True),
+                f"ensemble ({'+'.join(m['name'] for m in models)})": (allm, False, False),
+                "ensemble + TTA": (allm, True, False), "ensemble + smooth3": (allm, False, True)}
+    if args.no_tta:
+        variants = {k: v for k, v in variants.items() if not v[1]}
 
     idx = pd.read_csv(prep / "index.csv")
     tiles = idx[(idx["status"] == "ok") & (idx["split"] == args.split)]
@@ -123,7 +142,7 @@ def main():
         z = np.load(prep / f"{r.tile_id}.npz")
         s1, lbl, month = z["s1"], z[args.label], z["month"].astype(int)
         cache = {}
-        for v, (ms, tta) in variants.items():
+        for v, (ms, tta, sm) in variants.items():
             ps = []
             for mi in ms:
                 if (mi, tta) not in cache:
@@ -131,6 +150,8 @@ def main():
                 ps.append(cache[(mi, tta)])
             prob = np.mean([p for p, _ in ps], axis=0)
             have = ps[0][1]
+            if sm:
+                prob = smooth3(prob, have)
             maps = np.where(have, prob.argmax(1), -1).astype(np.int16)
             cm, fl, g = score(maps, lbl)
             a = acc[v]
@@ -159,7 +180,7 @@ def main():
             rows.append({**base_row, "change_rule": f"confident {t[0]}/{t[1]}", "new_ha_km2": n * 0.01 / k2,
                          "false_new_ha_km2": (n - tp) * 0.01 / k2, "change_P": tp / n if n else np.nan})
     df = pd.DataFrame(rows)
-    out = Path(args.runs[0]).parent / "ensemble_eval.csv"
+    out = Path(args.runs[0]).parent / args.out
     df.to_csv(out, index=False)
     pd.set_option("display.width", 220)
     print("\nMaps (one row per variant):")
