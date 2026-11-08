@@ -44,6 +44,12 @@ Model weights: `train/runs/<run>/best_fp16.pt` (half precision, ~50 MB each) for
 E3, E1, E5, E2b; the app loads them automatically. Settings, training history, test metrics and logs of all runs are
 in `train/runs/`.
 
+## Dataset
+
+600 places, 34,981 Sentinel-1 scenes of 2023 with monthly labels (13.5 GB), CC BY 4.0:
+**https://doi.org/10.5281/zenodo.24053842**. Unpack the three `prepared_*.tar` into `data/tiles_v0/` and the files of
+`metadata.zip` into `data/tiles_v0/prepared/` to retrain or evaluate (see the dataset README for the file format).
+
 ## Run the prototype
 
 ```bash
