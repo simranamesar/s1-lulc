@@ -3,8 +3,6 @@
 Deep-learning semantic segmentation of land use and land cover from **Sentinel-1 radar only**, trained on 600 places
 on every continent, and a prototype that shows **how much was built in a year** at any coordinates.
 
-Exam project, Data Analytics 3 (SRH Hochschule Heidelberg), 2026.
-
 | | |
 | --- | --- |
 | Input | single raw Sentinel-1 IW scenes (VV, VH, VH−VV in dB), terrain-flattened γ⁰, 10 m |
