@@ -23,12 +23,14 @@ Exam project, Data Analytics 3 (SRH Hochschule Heidelberg), 2026.
 | Ensemble of 4 models, month mean | 0.544 | 0.682 | 0.84 | 12 % |
 | **Prototype: ensemble + 3-month smoothing** | **0.549** | | | **5.9 %** |
 
-Built-up change compares the first 3 months with the same 3 months one year later (so seasons cannot look like
-construction), with a "moderate" rule (built-up probability ≥ 0.5 at the end, < 0.35 in every start month); a strict
-and a loose rule are shown as lower and upper bound. On unseen places the strict rule reports ≈ 0.005 ha/km² of false
-new built-up per year, versus 0.41 with a plain per-month rule. Variant comparison (labels, transfer learning, upsampling, speckle filter, annual
-labels, learning curve) is in `notebooks/02_training_evaluation.ipynb`; every attempt, what failed and why is in the
-Project Log.
+Built-up change compares the first 3 months with the same 3 months one year later, so a change of season cannot
+look like construction. A pixel counts as new built-up when its built-up probability is ≥ 0.5 at the end and < 0.35
+in every start month ("moderate" rule; a strict and a loose rule are shown as lower and upper bound). On the 130 test
+places this rule wrongly marks about **0.04 ha of new built-up per km² per year** (strict rule ≈ 0.005, loose rule
+≈ 0.59; measured between the first and last 3 months of 2023, the year with labels). The app compares every result
+with this error level and reports *clear growth* only when the new built-up is at least 3 times larger. The variant
+comparison (labels, transfer learning, upsampling, speckle filter, annual labels, learning curve) is in
+`notebooks/02_training_evaluation.ipynb`; what was tried, what failed and why is in the report.
 
 ## Repository
 
@@ -36,8 +38,8 @@ Project Log.
 data/        Earth Engine download and preparation (sampling, labels, scenes, cleaning, statistics)  -> data/README.md
 train/       model, training, evaluation, variant runs and their results (train/runs/*)              -> train/README.md
 prototype/   Streamlit app, pipeline, pre-computed gallery of example places                         -> prototype/README.md
-notebooks/   00 read me first (overview + glossary) · 01 data · 02 training and evaluation · 03 case studies ·
-             04 training step by step (executed, with outputs)
+notebooks/   01 data · 02 training and evaluation · 03 case studies · 04 training step by step
+             (all executed, with outputs)
 ```
 
 Model weights: `train/runs/<run>/best_fp16.pt` (half precision, ~50 MB each) for the four prototype models
@@ -60,13 +62,16 @@ earthengine authenticate               # Google Earth Engine account with a Clou
 streamlit run app.py
 ```
 
-*Gallery* mode opens the pre-computed places instantly; *Live run* works for any coordinates (2–5 min).
+The app opens on a **Home** page. **Live run** works for any coordinates (2–5 min; each result is saved in
+`prototype/cache/` and opens instantly the next time). **Gallery** shows 14 pre-computed places with notes on what
+was found; these result files are large and not in the repository, so create them once with
+`python3 case_studies.py --project <your Earth Engine project>` (3–5 min per place). See `prototype/README.md`.
 
 ## Reproduce the data and training
 
 1. `data/`: `sample_tiles.py` → `export_tiles.py` → `export_scenes.py` → `prepare_data.py` (see `data/README.md`).
 2. `train/`: `balance.py`, then `run_experiments.sh` (all variants on one GPU), `eval_change.py`, `eval_ensemble.py`.
-3. `notebooks/`: run 01 and 02 for the figures and tables.
+3. `notebooks/`: run 01 and 02 for the figures and tables, 04 for the training curves (03 needs the gallery files).
 
 ## Data sources
 

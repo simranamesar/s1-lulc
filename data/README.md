@@ -1,3 +1,23 @@
+# Ready-made dataset on Zenodo
+
+The prepared dataset of this project is published, so steps 1–3 below do not have to be repeated:
+
+**S1-LULC-600**: 600 places, 34,981 Sentinel-1 scenes of 2023 with monthly land-cover labels, 13.5 GB, CC BY 4.0.
+DOI [10.5281/zenodo.24053842](https://doi.org/10.5281/zenodo.24053842) · https://zenodo.org/records/24053842
+
+| File on Zenodo | Unpack into | Contents |
+| --- | --- | --- |
+| `prepared_train.tar`, `prepared_val.tar`, `prepared_test.tar` | `data/tiles_v0/` | `prepared/<tile_id>.npz`: scenes + labels, one file per place |
+| `metadata.zip` | `data/tiles_v0/prepared/` | `index.csv`, `stats.json`, `balance_report.*`, `tiles.csv`, `tiles.geojson` (copy the last two also to `data/tiles_v0/`) |
+| `raw_labels.tar` | `data/tiles_v0/` | `raw/*.tif`: the GeoTIFFs as downloaded (only needed to rebuild the labels) |
+
+The file format is described in `DATASET_README.md` (the README published with the dataset). `pack_dataset.py` packed
+the files and `upload_zenodo.py` uploaded them.
+
+The steps below document how the dataset was made.
+
+---
+
 # Step 1 — Sample training tiles
 
 `sample_tiles.py` picks a globally stratified list of 2.56 km tiles for the Sentinel-1-only LULC model.

@@ -2,6 +2,7 @@
 
 Training and evaluation data of the project *Sentinel-1 land cover monitor* (Data Analytics 3, SRH Hochschule
 Heidelberg, 2026). Code: https://github.com/simranamesar/s1-lulc
+DOI: https://doi.org/10.5281/zenodo.24053842
 
 600 places of 2.56 km × 2.56 km (256 × 256 pixels of 10 m), drawn stratified by world region (7), biome (14),
 settlement type (city / town / village / none) and land cover, with **every Sentinel-1 IW acquisition of 2023**

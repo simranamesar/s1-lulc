@@ -1,62 +1,59 @@
-# Sentinel-1 LULC monitor (prototype)
+# Sentinel-1 land cover monitor (prototype)
 
-Enter a location (latitude/longitude, or click the map) and a start month. The app:
+A Streamlit app: type a location and a start month, and it draws **12 monthly land-cover maps from Sentinel-1 radar
+only**, the share of every class per month, and **how much land was newly built in one year**, checked against two
+independent maps.
 
-1. **Retrieves** one **raw Sentinel-1 scene per month** (no averaging) from Google Earth Engine for a square around
-   the point (2.56, 5.12 or 7.68 km): the scene that covers the whole area and was acquired closest to mid-month.
-   It is prepared with exactly the same recipe as the training data (`../data/s1_composite.py`): IW scene with
-   VV + VH → terrain flattening to gamma0 (Copernicus GLO-30 DEM, layover/shadow masked) → border-noise mask →
-   VV, VH, VH−VV in dB. Earth Engine has already applied calibration, thermal-noise removal and geometric terrain
-   correction. No speckle filter, unless the chosen model was trained with the Lee filter (E5).
-2. **Predicts** a 6-class land-cover map for every month with the trained U-Net (`../train/model.py`),
-   normalised with the training statistics. A month without Sentinel-1 data is left empty.
-3. **Calculates**, per month, the % of the area covered by each class (pixels of class / pixels with data × 100),
-   the **month-to-month change** (this month − previous month) and the **total change** (last month with data −
-   first month with data), both in **percentage points**.
-4. **Measures built-up change** (the headline tab): built-up % at the start and the end, new / lost / net hectares
-   and a change map. To stop single-month errors from reading as construction, the start and end are the **first 3
-   and last 3 months with data**; a pixel is *new built-up* only if it is built-up in most of the last 3 months and
-   in **none** of the first 3, and patches smaller than 4 pixels (400 m², adjustable) are dropped. The same rule
-   gives a robust change table for every class.
-5. **Shows** the 12 maps (slider, grid, animated GIF) with the date and orbit pass of each scene, the % and change
-   tables, a % chart and the Sentinel-1 input.
-6. **Checks** the result against independent maps, never used in training:
-   - built-up change against **Open Buildings 2.5D Temporal** (Google, yearly building presence 2016–2023, dated
-     30 June; Africa, South & Southeast Asia, Latin America) and against **ESRI 10 m land cover** of the start and
-     end years. The table also shows how much of our new built-up the reference confirms;
-   - the class map against ESRI on the same 6 classes (its *rangeland* = our grass & shrub).
+## What you see
 
-The default example is the Lekki–Ajah corridor in Lagos, July 2022 – June 2023, which lines up with the Open
-Buildings snapshots of June 2022 and June 2023. Other presets: Nairobi (Kitengela), Dhaka (Purbachal) and
-Heidelberg as a place with little change.
+- **Home**: a rotating globe with the 600 dataset places (small dots) and the places shown in the app (large dots),
+  the key numbers of the project and two buttons: *Open the gallery* and *Run a place of your choice*.
+- **Live run**: type latitude and longitude (or click the map), choose the area size (2.56, 5.12 or 7.68 km) and the
+  start month, press **Run**.
+- **Gallery**: 14 places computed in advance (fast-growing city edges, a stable control, hard cases), each with the
+  facts of the run and a short note on what was found.
 
-Optional: **Smooth predictions across months** applies the same 3-month majority and trees/shrub seasonal fix used for
-the training labels, to show how much of the change is classification flicker.
+The results have four tabs:
 
-This Streamlit app plays the role of the Flask prediction miniapp from lab 14, with a map instead of a file upload.
+| Tab | Shows |
+| --- | --- |
+| **Built-up change** | built-up share, new and lost built-up in hectares, a change map (pink = new) and a verdict box |
+| **Monthly maps** | the land-cover map of each month next to the radar image the model received; all 12 months and an animated GIF |
+| **Class shares** | the share of each of the 6 classes per month, and the change between the start and the end |
+| **Checks** | the built-up change of Open Buildings 2.5D Temporal and ESRI 10 m land cover on the same pixels, how much of our new built-up they confirm, and our map of the year next to ESRI's |
 
-## Gallery mode (for the demo)
+## How a run works (`pipeline.py`)
 
-`case_studies.py` runs the whole pipeline for 11 chosen places and saves the results, so the app's
-**Gallery** mode opens them instantly (no waiting for Earth Engine during a presentation). The list mixes places
-where the model should do well (fast-growing city edges: Lagos, Nairobi, Dhaka, Egypt's new capital, Phoenix), a
-stable control (Heidelberg) and places chosen because they are hard for radar (village houses in Niger, flooded
-rice in the Mekong delta, the Alps, Saharan dunes, Amazon deforestation). Each comes with a note on what to look for.
+1. **Grid**: a square of 10 m pixels around the point, in the local UTM zone.
+2. **Download**: every Sentinel-1 IW scene of the 12 months, plus the same 3 months one year later, from Google Earth
+   Engine, prepared exactly like the training data (`../data/s1_composite.py`: VV + VH, border-noise mask, terrain
+   flattening to γ⁰ with layover / shadow masked, VV, VH, VH−VV in dB).
+3. **Predict**: every scene with the 4 trained models E3, E1, E5, E2b (`../train/runs/*/best_fp16.pt`); their class
+   probabilities are averaged per scene and then over all scenes of a month.
+4. **Smooth**: each month's probabilities are averaged with the previous and next month (halves the month-to-month
+   flicker on the test places), then the most likely class is taken.
+5. **Class shares**: % of the pixels with data per class and month; changes in percentage points.
+6. **Built-up change**: the first 3 months are compared with **the same 3 months one year later**, so a change of
+   season cannot look like construction. A pixel is *new built-up* when its built-up probability is ≥ 0.5 at the end
+   and < 0.35 in every start month ("moderate" rule); patches under 4 pixels (400 m²) are dropped.
+7. **Is it real?** On the 130 test places (regions never used in training) this rule wrongly marks about
+   0.04 ha of new built-up per km² per year. The app scales this to the area (about 1.1 ha for 5.12 km × 5.12 km):
+   at least 3 times more = *clear growth*, 1.5–3 times = *some growth*, otherwise *no change detectable*.
+8. **Check**: Open Buildings 2.5D Temporal (Google; yearly building presence, Africa, South & Southeast Asia, Latin
+   America) and ESRI 10 m annual land cover, neither used in training.
 
-```bash
-python3 case_studies.py --run ../train/runs/E1 --project scm-ksns      # ~3-5 min per place
-```
+The default setting is stored in `pipeline.PROTOTYPE`. *Advanced settings* in the sidebar can choose single models,
+test-time augmentation, the within-year comparison, a stricter or looser change rule, majority smoothing and the
+smallest change patch.
 
-**Is the change real?** The built-up tab compares the new built-up with the error level the model shows on unseen
-test places (false new built-up per km² per year, from `train/eval_change.py`): at least 3x that level = *clear
-growth*, 1.5-3x = *partly within the error level*, below = *no change detectable*.
-
-## Accounts and keys
-
-- A **Google Earth Engine** account with a Cloud project registered for noncommercial use (we used `scm-ksns`).
-  No API key file is needed: authenticate once per machine with `earthengine authenticate`.
+**Saved results.** Every live run with the default settings is saved in `cache/`; typing the same coordinates again
+(same start month and area) opens it instantly, with a grey note saying when it was computed. Gallery and village
+test results are reused the same way.
 
 ## Setup
+
+A Google Earth Engine account with a Cloud project registered for non-commercial use (no key file; authenticate once
+per machine).
 
 ```bash
 cd prototype
@@ -66,25 +63,37 @@ pip install -r requirements.txt
 earthengine authenticate
 ```
 
-The app needs a trained model folder from `train/runs/` (contains `best.pt`, `config.json`, `stats.json`).
-It defaults to `../train/runs/E1`; change it in the sidebar.
+The four model files are in `../train/runs/{E3,E1,E5,E2b}/best_fp16.pt`; the app finds them automatically.
 
 ## Run
 
 ```bash
-streamlit run app.py                  # opens http://localhost:8501
-EE_PROJECT=scm-ksns streamlit run app.py
+EE_PROJECT=<your-project> streamlit run app.py      # opens http://localhost:8501
 ```
 
-On the server, run it there and open it from your laptop with an SSH tunnel:
-`ssh -L 8501:localhost:8501 user@server`, then browse to http://localhost:8501.
+Gallery files are large (about 20 MB per place) and not in the repository. Create them once:
 
-`S1LULC_DEMO=1 streamlit run app.py` runs the interface on synthetic data (no Earth Engine, no model), only for
-checking the UI.
+```bash
+python3 case_studies.py --project <your-project>                 # 14 places, 3–5 min each
+python3 case_studies.py --project <your-project> --only lagos    # one place
+python3 summarize_cases.py                                       # print their numbers
+```
+
+`S1LULC_DEMO=1 streamlit run app.py` runs the interface on synthetic data (no Earth Engine, no model), only to check
+the layout. On a server, use an SSH tunnel: `ssh -L 8501:localhost:8501 user@server`.
 
 ## Files
 
 | File | Purpose |
 | --- | --- |
-| `app.py` | Streamlit interface |
-| `pipeline.py` | grid, retrieval, prediction, smoothing, class % and change, ESRI check, rendering; usable without the UI via `pipeline.run(...)` |
+| `app.py` | Streamlit interface (gallery, live run, result tabs, saved results) |
+| `landing.py` | Home page with the globe |
+| `pipeline.py` | grid, download, prediction, smoothing, class shares, built-up change, verdict, checks; `PROTOTYPE` holds the default setting |
+| `case_studies.py` | computes the 14 gallery places and their notes (`FINDINGS`) |
+| `summarize_cases.py` | prints the numbers of the gallery places |
+| `village_candidates.py` | the village tests (Nile delta and others), saved to `village_candidates/` |
+| `check_coverage.py` | counts Sentinel-1 scenes over candidate places (used to replace a desert place without any scenes) |
+| `static/places.json` | latitude / longitude of the 600 dataset places, for the globe |
+| `static/cobe.min.js` | the globe library [cobe](https://github.com/shuding/cobe) 0.6.3 (MIT, Shu Ding), bundled so the page works offline |
+
+The globe follows the design of the *Globe* component of Magic UI (MIT), rewritten as plain HTML and JavaScript.

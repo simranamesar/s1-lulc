@@ -9,15 +9,16 @@ Steps (the report's "Prototype" section follows this order):
                  ("month mean"). On the 130 test tiles this beat one scene per month: mIoU 0.492 -> 0.522,
                  month-to-month flip rate 25% -> 15%, built-up false change 4.4% -> 2.2% (train/eval_change.py).
                  (Lee speckle filter only if that model was trained with --lee)
-    4. smooth    optional: 3-month majority + trees/shrub seasonal fix (same rule as the training labels)
+    4. smooth    3-month probability smoothing (default) or a 3-month majority of the maps (optional)
     5. compute   % of valid pixels per class per month; month-to-month change and first-to-last change in
                  percentage points (pp)
     6. check     ESRI 10 m annual land cover (never used in training) vs our year-majority map, on the same 6 classes
-    7. built-up  the headline (end goal): robust built-up change over the 12 months. A pixel is NEW built-up only
-                 if it is built-up in most of the last 3 months with data and in none of the first 3; LOST
-                 built-up the other way round. This ignores one-month flicker, which would otherwise look like
-                 construction. Checked against two independent yearly products: Open Buildings 2.5D Temporal
-                 (Africa, South / South-East Asia, Latin America; yearly 2016-2023) and ESRI 10 m annual maps.
+    7. built-up  the headline (end goal): the first 3 months against the same 3 months one year later (15 months
+                 are downloaded), so seasons cannot look like construction. NEW built-up: built-up probability
+                 >= 0.5 at the end and < 0.35 in every start month ("moderate"); a strict and a loose rule give
+                 the range. change_verdict() compares the result with the false new built-up measured on the 130
+                 test places. Checked against Open Buildings 2.5D Temporal and ESRI 10 m annual maps.
+    The final setting (ensemble of 4 models, smoothing, rule) is PROTOTYPE below.
 """
 
 from __future__ import annotations

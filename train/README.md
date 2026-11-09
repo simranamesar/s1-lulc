@@ -61,7 +61,7 @@ Results land in `train/runs/E0/`:
 | File | What it holds |
 | --- | --- |
 | `history.csv`, `curves.png` | loss and mIoU per epoch (for the notebook) |
-| `best.pt` | weights of the best validation epoch |
+| `best.pt` | weights of the best validation epoch (not in the repository; `best_fp16.pt`, the same weights in half precision, is included for E1, E2b, E3, E5) |
 | `test_metrics.json` | OA, mIoU, macro F1 (6 classes), per settlement type and region, village built-up, flip rate, built-up precision / recall / false change rate, new built-up with the prototype's change rule |
 | `test_per_class.csv`, `test_confusion.csv` | per-class IoU and confusion matrix |
 
@@ -91,7 +91,8 @@ Built-up change metrics (the prototype's headline), printed after the test:
 - **false change rate**: share of pixels whose predicted built-up status flips between consecutive months where the
   label's built-up status stays the same. Each flip would be fake construction or demolition.
 - **new built-up (prototype rule)**: predicted vs label new built-up in ha per km², the false part, and its precision
-  and recall. Uses the same first-3 vs last-3 months rule as the app.
+  and recall, between the first 3 and the last 3 months of 2023. `eval_ensemble.py` scores the final setting (ensemble,
+  3-month smoothing) with the probability rules the app uses.
 
 `compare_runs.py` puts `built_P`, `built_R`, `built_false_change` and `false_new_ha_km2` next to mIoU, so the run
 chosen for the prototype is the one that measures change best, not only the one with the best mIoU.
