@@ -42,9 +42,21 @@ notebooks/   01 data · 02 training and evaluation · 03 case studies · 04 trai
              (all executed, with outputs)
 ```
 
-Model weights: `train/runs/<run>/best_fp16.pt` (half precision, ~50 MB each) for the four prototype models
-E3, E1, E5, E2b; the app loads them automatically. Settings, training history, test metrics and logs of all runs are
-in `train/runs/`.
+## Model weights
+
+The four models of the prototype (U-Net, ResNet34 encoder, half precision, about 50 MB each; the app averages them):
+
+| Model | What differs | Weights |
+| --- | --- | --- |
+| E3 | transposed-convolution upsampling | [train/runs/E3/best_fp16.pt](https://github.com/simranamesar/s1-lulc/raw/main/train/runs/E3/best_fp16.pt) |
+| E1 | hybrid + smoothed monthly labels (main setting) | [train/runs/E1/best_fp16.pt](https://github.com/simranamesar/s1-lulc/raw/main/train/runs/E1/best_fp16.pt) |
+| E5 | 5×5 Lee speckle filter on the input | [train/runs/E5/best_fp16.pt](https://github.com/simranamesar/s1-lulc/raw/main/train/runs/E5/best_fp16.pt) |
+| E2b | trained from scratch (no ImageNet start) | [train/runs/E2b/best_fp16.pt](https://github.com/simranamesar/s1-lulc/raw/main/train/runs/E2b/best_fp16.pt) |
+
+Each folder also holds `config.json` (training settings), `stats.json` (input normalisation, needed to use the
+weights), `history.csv`, test metrics and the confusion matrix. All runs: https://github.com/simranamesar/s1-lulc/tree/main/train/runs.
+The app loads the four models automatically; in Python: `train/model.py` builds the network, then
+`model.load_state_dict(torch.load("best_fp16.pt"))` (convert to float for CPU use).
 
 ## Dataset
 

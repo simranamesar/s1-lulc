@@ -76,9 +76,9 @@ Training uses the balanced sampler by default; `--sampler uniform` turns it off 
 | E0 | raw Dynamic World labels | baseline |
 | E1 | hybrid + smoothed monthly labels | do building footprints and seasonal smoothing help villages and change numbers? |
 | E1y | hybrid annual label (yearly majority) | are stable, WorldCover-style annual labels better than monthly ones? |
-| E2a | E1 with the ImageNet encoder frozen | transfer learning as feature extraction vs fine-tuning (lecture 08) |
+| E2a | E1 with the ImageNet encoder frozen | transfer learning as feature extraction vs fine-tuning |
 | E2b | E1 trained from scratch | does ImageNet help at all, given photos and radar differ (negative transfer)? |
-| E3 | E1 with transposed-conv upsampling | learned "inverse of convolution" vs interpolation (lecture 07, lab 12) |
+| E3 | E1 with transposed-conv upsampling | learned "inverse of convolution" vs interpolation |
 | E5 | E1 with a 5×5 Lee speckle filter | does speckle filtering help on raw single scenes? |
 
 ```bash
