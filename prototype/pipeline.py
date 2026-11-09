@@ -45,6 +45,7 @@ PIXEL_HA = PIXEL_M * PIXEL_M / 10_000       # one 10 m pixel = 0.01 ha
 
 # Case-study presets (approximate centres; fast-growing city edges are where yearly built-up change is visible)
 PRESETS = {
+    "Villages in the Nile delta (Egypt)": (30.700, 30.950),
     "Lagos, Lekki\u2013Ajah corridor (Nigeria)": (6.468, 3.630),
     "Nairobi, Kitengela (Kenya)": (-1.474, 36.958),
     "Dhaka, Purbachal (Bangladesh)": (23.835, 90.520),

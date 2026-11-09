@@ -6,3 +6,5 @@ __pycache__/
 *.zip
 train/runs/*/best.pt
 train/runs/*/last.pt
+prototype/cache/
+prototype/village_candidates/

@@ -81,10 +81,11 @@ def demo_data(size: int, start_ym: str):
 # ----------------------------------------------------------------------------- sidebar
 
 with st.sidebar:
-    mode = st.radio("Mode", ["Gallery (pre-computed examples)", "Live run (any location)"],
+    MODES = ["Home", "Gallery (pre-computed examples)", "Live run (any location)"]
+    mode = st.radio("Mode", MODES, key="mode_choice",
                     help="Gallery opens saved results instantly; Live run downloads Sentinel-1 for any point "
                          "(2-5 min, needs Earth Engine on this machine).")
-    LIVE = mode.startswith("Live")
+    HOME, LIVE = mode == "Home", mode.startswith("Live")
     project, size = os.environ.get("EE_PROJECT", "scm-ksns"), 512
     if LIVE:
         size_label = st.selectbox("Area size", ["2.56 km × 2.56 km", "5.12 km × 5.12 km", "7.68 km × 7.68 km"],
@@ -126,10 +127,59 @@ with st.sidebar:
 
 # ----------------------------------------------------------------------------- input
 
+if HOME:
+    import landing
+    landing.show("mode_choice", MODES[1], MODES[2])
+    st.stop()
+
 st.title("Sentinel-1 land use and land cover monitor")
 st.caption("Land cover from Sentinel-1 radar only: 12 monthly maps for any place, and how much was built in a year.")
 
 GALLERY_DIR = Path(__file__).resolve().parent / "case_studies"
+VILLAGE_DIR = Path(__file__).resolve().parent / "village_candidates"
+CACHE_DIR = Path(__file__).resolve().parent / "cache"          # every live run is saved here
+
+
+def cache_index() -> list[tuple[float, float, str, int, Path]]:
+    """(lat, lon, start month, size, file) of every result computed before: gallery, village tests, live runs."""
+    idx = []
+    try:
+        from case_studies import CASES, START
+        idx += [(c[2], c[3], START, 512, GALLERY_DIR / f"{c[0]}.pkl.gz") for c in CASES]
+    except ImportError:
+        pass
+    try:
+        from village_candidates import CANDIDATES
+        from case_studies import START as VSTART
+        idx += [(c[2], c[3], VSTART, 512, VILLAGE_DIR / f"{c[0]}.pkl.gz") for c in CANDIDATES]
+    except ImportError:
+        pass
+    for f in CACHE_DIR.glob("*.pkl.gz"):          # name: <lat>_<lon>_<start>_<size>.pkl.gz
+        try:
+            la, lo, sm, sz = f.name[:-7].split("_")
+            idx.append((float(la), float(lo), sm, int(sz), f))
+        except ValueError:
+            continue
+    return [x for x in idx if x[4].exists()]
+
+
+def find_cached(lat: float, lon: float, start_ym: str, size: int, tol: float = 0.003):
+    """A result computed before for (almost) the same point, start month and area size, else None."""
+    for la, lo, sm, sz, f in cache_index():
+        if abs(la - lat) <= tol and abs(lo - lon) <= tol and sm == start_ym and sz == size:
+            return f
+    return None
+
+
+def save_to_cache(result: dict, lat: float, lon: float, start_ym: str, size: int) -> None:
+    import gzip
+    import pickle
+    try:
+        CACHE_DIR.mkdir(exist_ok=True)
+        with gzip.open(CACHE_DIR / f"{lat:.4f}_{lon:.4f}_{start_ym}_{size}.pkl.gz", "wb") as f:
+            pickle.dump(result, f, protocol=pickle.HIGHEST_PROTOCOL)
+    except OSError:
+        pass
 
 
 @st.cache_data(show_spinner="Opening the example ...")
@@ -138,6 +188,37 @@ def load_case(path: str) -> dict:
     import pickle
     with gzip.open(path, "rb") as f:
         return pickle.load(f)
+
+
+def area_map(lat: float, lon: float, size: int, key: str, clickable: bool):
+    """OpenStreetMap with the analysis area as a red square. The same map in both modes."""
+    import folium
+    from streamlit_folium import st_folium
+    fmap = folium.Map(location=[lat, lon], zoom_start=12, tiles="OpenStreetMap")
+    half_deg = size * P.PIXEL_M / 2 / 111_320
+    half_lon = half_deg / max(np.cos(np.radians(lat)), 1e-6)
+    folium.Rectangle([[lat - half_deg, lon - half_lon], [lat + half_deg, lon + half_lon]],
+                     color="#c4281b", weight=2, fill=False).add_to(fmap)
+    return st_folium(fmap, height=380, use_container_width=True, key=key,
+                     returned_objects=["last_clicked"] if clickable else [])
+
+
+def month_pickers(start_ym: str, disabled: bool) -> str:
+    """Start year and month, the same widgets in both modes (fixed in the gallery)."""
+    today = dt.date.today()
+    c1, c2 = st.columns(2)
+    years = list(range(2017, today.year + 1))[::-1]
+    y0, m0 = int(start_ym[:4]), int(start_ym[5:7])
+    year = c1.selectbox("Start year", years, index=years.index(y0), disabled=disabled,
+                        key=f"year_{'g' if disabled else 'l'}",
+                        help="July 2022 to June 2023 lines up with the Open Buildings snapshots (30 June each year)")
+    month = c2.selectbox("Start month", list(range(1, 13)), index=m0 - 1, disabled=disabled,
+                         key=f"month_{'g' if disabled else 'l'}",
+                         format_func=lambda m: dt.date(2000, m, 1).strftime("%B"))
+    ym = f"{year:04d}-{month:02d}"
+    months_ = P.month_list(ym)
+    st.write(f"Months analysed: **{months_[0]} to {months_[-1]}**")
+    return ym
 
 
 if not LIVE:
@@ -153,10 +234,25 @@ if not LIVE:
                    "on a machine with Earth Engine access, or switch to Live run in the sidebar.")
         st.stop()
     cases = {f: load_case(str(f)) for f in files}
-    pick_f = st.selectbox("Example place", files, format_func=lambda f: f"{cases[f]['case']['title']}  ·  "
-                                                                       f"{cases[f]['case']['kind']}")
+    pick_f = st.selectbox("Example places (pre-computed, open instantly)", files,
+                          format_func=lambda f: f"{cases[f]['case']['title']}  ·  {cases[f]['case']['kind']}")
     case = cases[pick_f]
     c = case["case"]
+    g_size = int(case["g"]["size"])
+
+    left, right = st.columns([3, 2])
+    with left:
+        area_map(case["lat"], case["lon"], g_size, key=f"gmap_{c.get('id', pick_f.name)}", clickable=False)
+        st.caption("The analysis area (red square). To analyse another place, switch to Live run in the sidebar.")
+    with right:
+        st.number_input("Latitude", value=float(case["lat"]), format="%.5f", disabled=True, key=f"glat_{pick_f.name}")
+        st.number_input("Longitude", value=float(case["lon"]), format="%.5f", disabled=True,
+                        key=f"glon_{pick_f.name}")
+        month_pickers(case["months"][0], disabled=True)
+        km_g = g_size * P.PIXEL_M / 1000
+        st.write(f"Area: **{km_g:.2f} km × {km_g:.2f} km**")
+        st.button("Pre-computed: shown below", type="primary", use_container_width=True, disabled=True)
+
     try:
         from case_studies import FINDINGS
         found = FINDINGS.get(c.get("id", ""), "")
@@ -166,12 +262,14 @@ if not LIVE:
         st.info(f"**What we found:** {found}")
     with st.expander("About this place"):
         st.write(c["note"])
-    st.session_state.result = case
+    st.session_state.result, st.session_state.result_mode = case, "gallery"
 
 if LIVE:
+    if st.session_state.get("result_mode") != "live":   # do not show a gallery result under the live inputs
+        st.session_state.result, st.session_state.result_mode = None, "live"
     PRESET_NAMES = list(P.PRESETS)
     if "lat" not in st.session_state:
-        st.session_state.lat, st.session_state.lon = P.PRESETS[PRESET_NAMES[0]]   # Lagos, fast-growing
+        st.session_state.lat, st.session_state.lon = P.PRESETS[PRESET_NAMES[0]]
 
 
     def _use_preset():
@@ -187,15 +285,7 @@ if LIVE:
 
     left, right = st.columns([3, 2])
     with left:
-        import folium
-        from streamlit_folium import st_folium
-        fmap = folium.Map(location=[st.session_state.lat, st.session_state.lon], zoom_start=12, tiles="OpenStreetMap")
-        half_deg = size * P.PIXEL_M / 2 / 111_320
-        half_lon = half_deg / max(np.cos(np.radians(st.session_state.lat)), 1e-6)
-        folium.Rectangle([[st.session_state.lat - half_deg, st.session_state.lon - half_lon],
-                          [st.session_state.lat + half_deg, st.session_state.lon + half_lon]],
-                         color="#c4281b", weight=2, fill=False).add_to(fmap)
-        clicked = st_folium(fmap, height=380, use_container_width=True, key="map")
+        clicked = area_map(st.session_state.lat, st.session_state.lon, size, key="map", clickable=True)
         if clicked and clicked.get("last_clicked"):
             c = clicked["last_clicked"]
             key = (round(c["lat"], 5), round(c["lng"], 5))
@@ -210,22 +300,24 @@ if LIVE:
         lat = st.number_input("Latitude", -60.0, 75.0, float(st.session_state.lat), format="%.5f")
         lon = st.number_input("Longitude", -180.0, 180.0, float(st.session_state.lon), format="%.5f")
         st.session_state.lat, st.session_state.lon = lat, lon
-        today = dt.date.today()
-        c1, c2 = st.columns(2)
-        years = list(range(2017, today.year + 1))[::-1]
-        year = c1.selectbox("Start year", years, index=years.index(2022),
-                            help="July 2022 to June 2023 lines up with the Open Buildings snapshots (30 June each year)")
-        month = c2.selectbox("Start month", list(range(1, 13)), index=6,
-                             format_func=lambda m: dt.date(2000, m, 1).strftime("%B"))
-        start_ym = f"{year:04d}-{month:02d}"
+        start_ym = month_pickers("2022-07", disabled=False)
         months = P.month_list(start_ym)
-        st.write(f"Months analysed: **{months[0]} to {months[-1]}**")
         go = st.button("Run", type="primary", use_container_width=True)
 
 
     # ----------------------------------------------------------------------------- processing
 
-    if go:
+    default_setup = (list(run_dirs) == [str(ROOT / "train" / "runs" / r) for r in P.PROTOTYPE["runs"]]
+                     and use_tta == P.PROTOTYPE["tta"] and use_s3 == P.PROTOTYPE.get("smooth3", False))
+    hit = find_cached(lat, lon, start_ym, size) if (go and default_setup and not DEMO) else None
+    if hit is not None:
+        cached = dict(load_case(str(hit)))
+        cached.pop("case", None)
+        computed = dt.datetime.fromtimestamp(hit.stat().st_mtime).strftime("%d %b %Y")
+        st.session_state.result = {**cached, "lat": lat, "lon": lon,
+                                   "cache_note": f"Result loaded from cache: computed on {computed} with the same "
+                                                 "pipeline and models. A new run takes 2 to 5 minutes."}
+    elif go:
         try:
             with st.status("Running ...", expanded=True) as status:
                 refs, ref, obt, esri_ab, pbuilt, extra = [], None, None, None, None, None
@@ -273,6 +365,8 @@ if LIVE:
                                        "ref": ref, "ref_year": int(months[0][:4]), "obt": obt, "esri_ab": esri_ab, "pbuilt": pbuilt,
                                        "extra": extra,
                                        "smoothed": smooth_months, "lat": lat, "lon": lon}
+            if default_setup and not DEMO:
+                save_to_cache(st.session_state.result, lat, lon, start_ym, size)
         except Exception as e:  # noqa: BLE001 - show the reason in the app
             st.error(f"Could not finish: {e}")
             st.info("Check the model folder, that the Earth Engine project is registered for noncommercial use, "
@@ -304,6 +398,8 @@ st.subheader("Results")
 st.caption(f"{res['lat']:.4f}, {res['lon']:.4f} · {km:.2f} km × {km:.2f} km · {months[0]} to {months[-1]} · "
            f"radar data in {int((n > 0).sum())} of 12 months"
            + (f" · agrees with ESRI {res['ref_year']} on {agree:.0f} % of pixels" if res["ref"] is not None else ""))
+if res.get("cache_note"):
+    st.caption(res["cache_note"])
 
 
 def fmt(df: pd.DataFrame) -> pd.DataFrame:
