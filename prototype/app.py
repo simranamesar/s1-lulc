@@ -244,44 +244,29 @@ if not LIVE:
     with left:
         area_map(case["lat"], case["lon"], g_size, key=f"gmap_{c.get('id', pick_f.name)}", clickable=False)
         st.caption("The analysis area (red square). To analyse another place, switch to Live run in the sidebar.")
-    with right:
-        st.number_input("Latitude", value=float(case["lat"]), format="%.5f", disabled=True, key=f"glat_{pick_f.name}")
-        st.number_input("Longitude", value=float(case["lon"]), format="%.5f", disabled=True,
-                        key=f"glon_{pick_f.name}")
-        month_pickers(case["months"][0], disabled=True)
-        km_g = g_size * P.PIXEL_M / 1000
-        st.write(f"Area: **{km_g:.2f} km × {km_g:.2f} km**")
-        st.button("Pre-computed: shown below", type="primary", use_container_width=True, disabled=True)
-
     try:
         from case_studies import FINDINGS
         found = FINDINGS.get(c.get("id", ""), "")
     except ImportError:
         found = ""
-    if found:
-        st.info(f"**What we found:** {found}")
-    with st.expander("About this place"):
-        st.write(c["note"])
+    with right:                            # what was analysed, as plain facts (nothing to edit in the gallery)
+        km_g = g_size * P.PIXEL_M / 1000
+        st.markdown(f"#### {c['title']}")
+        st.caption(c["kind"])
+        st.markdown(f"Location: **{case['lat']:.4f}, {case['lon']:.4f}**  \n"
+                    f"Period: **{case['months'][0]} to {case['months'][-1]}**  \n"
+                    f"Area: **{km_g:.2f} km × {km_g:.2f} km**")
+        if found:
+            st.info(f"**What we found:** {found}")
+        with st.expander("About this place"):
+            st.write(c["note"])
     st.session_state.result, st.session_state.result_mode = case, "gallery"
 
 if LIVE:
     if st.session_state.get("result_mode") != "live":   # do not show a gallery result under the live inputs
         st.session_state.result, st.session_state.result_mode = None, "live"
-    PRESET_NAMES = list(P.PRESETS)
-    if "lat" not in st.session_state:
-        st.session_state.lat, st.session_state.lon = P.PRESETS[PRESET_NAMES[0]]
-
-
-    def _use_preset():
-        name = st.session_state.preset
-        if name in P.PRESETS:
-            st.session_state.lat, st.session_state.lon = P.PRESETS[name]
-
-
-    if st.session_state.pop("_to_custom", False):      # set by a map click on the previous run
-        st.session_state.preset = "Custom location"    # (a widget's value may only be set before it is drawn)
-    st.selectbox("Example places (or click the map / type coordinates)", PRESET_NAMES + ["Custom location"],
-                 key="preset", on_change=_use_preset)
+    if "lat" not in st.session_state:                  # start on Heidelberg; type any coordinates or click the map
+        st.session_state.lat, st.session_state.lon = 49.4094, 8.6942
 
     left, right = st.columns([3, 2])
     with left:
@@ -292,9 +277,8 @@ if LIVE:
             if key != st.session_state.get("_last_click"):     # only a NEW click moves the area
                 st.session_state._last_click = key
                 st.session_state.lat, st.session_state.lon = c["lat"], c["lng"]
-                st.session_state._to_custom = True
                 st.rerun()
-        st.caption("Click the map to move the analysis area (red square).")
+        st.caption("Type the coordinates on the right, or click the map to move the analysis area (red square).")
 
     with right:
         lat = st.number_input("Latitude", -60.0, 75.0, float(st.session_state.lat), format="%.5f")

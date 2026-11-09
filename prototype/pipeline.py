@@ -608,9 +608,15 @@ def change_verdict(bc: dict, floor_ha_km2: float) -> tuple[str, str, float]:
         v = "Some growth, partly within the error level"
     else:
         v = "No change detectable"
-    why = (f"On 130 unseen test places the model reports about {floor_ha_km2:.2f} ha of false new built-up per km2 "
-           f"per year, i.e. about {expected:.1f} ha for this area. Found here: {bc['gain_ha']:.1f} ha "
-           f"({r:.1f}x the error level).")
+    err = f"the usual error of {expected:.1f} ha for an area this size"
+    if r >= 3:
+        why = f"{bc['gain_ha']:.1f} ha of new built-up found: about {r:.0f} times {err}."
+    elif r >= 1.5:
+        why = f"{bc['gain_ha']:.1f} ha of new built-up found: only about {r:.1f} times {err}, so part of it may be error."
+    else:
+        why = f"{bc['gain_ha']:.1f} ha of new built-up found: not more than {err}, so no real growth can be confirmed."
+    why += (f" (The usual error was measured on 130 test places in unseen regions: about {floor_ha_km2:.2f} ha of "
+            "wrongly marked new built-up per km² per year.)")
     return v, why, expected
 
 
