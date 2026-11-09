@@ -86,7 +86,7 @@ def show(mode_key: str, gallery_label: str, live_label: str) -> None:
     c1.metric("Training places", "600", help="2.56 km squares on every inhabited continent, all of 2023")
     c2.metric("Land-cover classes", "6", help="water, trees, grass & shrub, crops, built-up, bare & snow")
     c3.metric("Radar scenes in training", "34,981", help="every Sentinel-1 scene of 2023 over the 600 places")
-    c4.metric("Test mIoU", "0.549", help="130 test places in regions never used for training")
+    c4.metric("Test places in unseen regions", "130", help="places in 5° map blocks never used for training, to check the model works in new parts of the world")
 
     st.write("")
     _, b1, b2, _ = st.columns([1, 2, 2, 1])
