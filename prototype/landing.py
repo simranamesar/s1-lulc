@@ -111,11 +111,11 @@ def show(mode_key: str, gallery_label: str, live_label: str) -> None:
                     .replace("__COBE__", (Path(__file__).resolve().parent / "static" / "cobe.min.js").read_text())
                     .replace("__PLACES__", json.dumps(dataset_places())), height=470)
     st.markdown(
-        "<h2 style='text-align:center;margin:0.2rem 0 0'>Sentinel-1 land cover monitor</h2>"
-        "<p style='text-align:center;font-size:1.1rem;color:#555;max-width:760px;margin:0.4rem auto 1.2rem'>"
+        "<div style='text-align:center;font-size:2rem;font-weight:700;margin:0.4rem 0 0'>Sentinel-1 land cover monitor</div>"
+        "<p style='text-align:center;font-size:1.1rem;opacity:0.8;max-width:980px;text-wrap:balance;margin:0.4rem auto 1.2rem'>"
         "Type a location and a start month. From radar images alone, which see through clouds, the app draws "
         "12 monthly land-cover maps and measures how much land was newly built over one year. "
-        "It works in cities and in villages.<br><span style='font-size:0.95rem'>Small red dots: the 600 places used to train and test the model. Large red dots: the places shown in this app.</span></p>",
+        "It works in cities and in villages.</p><p style='text-align:center;font-size:0.95rem;opacity:0.8;margin:-0.6rem auto 1.2rem'>Small red dots: the 600 places used to train and test the model. Large red dots: the places shown in this app.</p>",
         unsafe_allow_html=True)
 
     c1, c2, c3, c4 = st.columns(4)
