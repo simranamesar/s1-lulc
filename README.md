@@ -40,6 +40,7 @@ train/       model, training, evaluation, variant runs and their results (train/
 prototype/   Streamlit app, pipeline, pre-computed gallery of example places                         -> prototype/README.md
 notebooks/   01 data · 02 training and evaluation · 03 case studies · 04 training step by step
              (all executed, with outputs)
+setup/       one-time setup and data preparation on the GPU server, training start, and the log of that run
 ```
 
 ## Model weights

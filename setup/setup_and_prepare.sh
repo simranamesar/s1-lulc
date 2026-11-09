@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # One-time setup + data preparation on the server (DataLab / JupyterLab terminal).
-# Run from the project folder:   bash setup_and_prepare.sh
-# Everything it prints is also saved to setup_log.txt -> send that file.
+# Run from the project folder:   bash setup/setup_and_prepare.sh
+# Everything it prints is also saved to setup/setup_log.txt.
 set -uo pipefail
-cd "$(dirname "$0")"
-exec > >(tee setup_log.txt) 2>&1
+cd "$(dirname "$0")/.."
+exec > >(tee setup/setup_log.txt) 2>&1
 step() { echo; echo "=== $* ==="; }
 
 step "1/6 Find the data folder (tiles_v0)"
@@ -45,4 +45,4 @@ step "6/6 Balance check"
 cd ../train
 python3 balance.py --prep-dir ../data/tiles_v0/prepared --label hyb_s || { echo "ERROR in balance"; exit 1; }
 
-echo; echo "ALL DONE. Send setup_log.txt (in the s1-lulc folder). Then start training with:  bash start_training.sh"
+echo; echo "ALL DONE. Log: setup/setup_log.txt. Then start training with:  bash setup/start_training.sh"
